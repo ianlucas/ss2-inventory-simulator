@@ -11,87 +11,87 @@ public partial class InventorySimulator
 {
     public readonly IConVar<bool> IsStatTrakIgnoreBots = core.ConVar.Create(
         "invsim_stattrak_ignore_bots",
-        "Whether to ignore StatTrak increments for bot kills.",
+        "Ignore StatTrak kill count increments for bot kills.",
         true
     );
-    public readonly IConVar<bool> IsSpraychangerEnabled = core.ConVar.Create(
+    public readonly IConVar<bool> IsSprayChangerEnabled = core.ConVar.Create(
         "invsim_spraychanger_enabled",
-        "Whether to change player vanilla spray if they have a graffiti equipped.",
+        "Replace the player's vanilla spray with their equipped graffiti.",
         false
     );
     public readonly IConVar<bool> IsSprayEnabled = core.ConVar.Create(
         "invsim_spray_enabled",
-        "Whether to enable spraying using !spray and/or use key.",
+        "Enable spraying via the !spray command and/or use key.",
         true
     );
     public readonly IConVar<bool> IsSprayOnUse = core.ConVar.Create(
         "invsim_spray_on_use",
-        "Whether to try to apply spray when player presses use.",
+        "Apply spray when the player presses the use key.",
         false
     );
     public readonly IConVar<bool> IsWsEnabled = core.ConVar.Create(
         "invsim_ws_enabled",
-        "Whether players can refresh their inventory using !ws.",
+        "Allow players to refresh their inventory using the !ws command.",
         false
     );
     public readonly IConVar<string> WsUrlPrintFormat = core.ConVar.Create(
         "invsim_ws_url_print_format",
-        "URL print format using !ws.",
+        "URL format string displayed when using the !ws command.",
         "{host}"
     );
     public readonly IConVar<bool> IsWsGlovesFix = core.ConVar.Create(
         "invsim_ws_gloves_fix",
-        "Whether to apply the glove change fix.",
+        "Apply the glove change fix when refreshing inventory.",
         false
     );
     public readonly IConVar<bool> IsWsImmediately = core.ConVar.Create(
         "invsim_ws_immediately",
-        "Whether to apply skin changes immediately.",
+        "Apply skin changes immediately without requiring a respawn.",
         false
     );
     public readonly IConVar<bool> IsFallbackTeam = core.ConVar.Create(
         "invsim_fallback_team",
-        "Whether get skin from any team (first current team).",
+        "Allow using skins from any team (prioritizes current team first).",
         false
     );
     public readonly IConVar<bool> IsRequireInventory = core.ConVar.Create(
         "invsim_require_inventory",
-        "Require the player's inventory to be fetched before allowing them to connect to the game.",
+        "Require the player's inventory to be fetched before allowing them to join the game.",
         false
     );
     public readonly IConVar<int> MinModels = core.ConVar.Create(
         "invsim_minmodels",
-        "Allows agents or use specific models for each team.",
+        "Enable player agents (0 = enabled, 1 = disabled, 2 = use map models per team).",
         0
     );
     public readonly IConVar<int> WsCooldown = core.ConVar.Create(
         "invsim_ws_cooldown",
-        "Cooldown in seconds between player inventory refreshes.",
+        "Cooldown duration in seconds between inventory refreshes per player.",
         30
     );
     public readonly IConVar<int> SprayCooldown = core.ConVar.Create(
         "invsim_spray_cooldown",
-        "Cooldown in seconds between player sprays.",
+        "Cooldown duration in seconds between sprays per player.",
         30
     );
     public readonly IConVar<string> ApiKey = core.ConVar.Create(
         "invsim_apikey",
-        "Inventory Simulator API's key.",
+        "API key for the Inventory Simulator service.",
         ""
     );
     public readonly IConVar<string> Url = core.ConVar.Create(
         "invsim_hostname",
-        "Inventory Simulator API's url.",
+        "API URL for the Inventory Simulator service.",
         "inventory.cstrike.app"
     );
     public readonly IConVar<bool> IsWsLogin = core.ConVar.Create(
         "invsim_wslogin",
-        "Not recommended, but allows authenticating into Inventory Simulator and printing login URL to the player.",
+        "Allow players to authenticate with Inventory Simulator and display their login URL (not recommended).",
         false
     );
     public readonly IConVar<string> File = core.ConVar.Create(
         "invsim_file",
-        "File to load when plugin is loaded.",
+        "Inventory data file to load when the plugin starts.",
         "inventories.json"
     );
 }
