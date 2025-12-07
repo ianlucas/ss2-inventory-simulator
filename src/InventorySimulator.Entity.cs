@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-using System.Runtime;
 using CS2Lib.SwiftlyCS2.Core;
 using CS2Lib.SwiftlyCS2.Extensions;
 using SwiftlyS2.Shared.Players;

@@ -174,7 +174,7 @@ public partial class InventorySimulator
         }
     }
 
-    public void GivePlayerMusicKitStatTrakIncrement(CCSPlayerController player)
+    public void GivePlayerMusicKitStatTrakIncrement(IPlayer player)
     {
         if (PlayerInventoryManager.TryGetValue(player.SteamID, out var inventory))
         {
