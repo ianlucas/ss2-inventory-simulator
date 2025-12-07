@@ -5,6 +5,7 @@
 
 using System.Text.Json.Serialization;
 using CS2Lib.SwiftlyCS2.Core;
+using SwiftlyS2.Shared.Players;
 
 namespace InventorySimulator;
 
@@ -223,7 +224,7 @@ public class PlayerInventory(
 
     public Dictionary<ushort, WeaponEconItem> GetWeapons(byte team)
     {
-        return team == EntityUtils.T ? TWeapons : CTWeapons;
+        return (Team)team == Team.T ? TWeapons : CTWeapons;
     }
 
     public WeaponEconItem? GetWeapon(byte team, ushort def, bool fallback)

@@ -6,6 +6,7 @@
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.Plugins;
+using SwiftlyS2.Shared.Sounds;
 
 namespace InventorySimulator;
 
@@ -18,6 +19,9 @@ namespace InventorySimulator;
 )]
 public partial class InventorySimulator(ISwiftlyCore core) : BasePlugin(core)
 {
+    public readonly SoundEvent SprayCanShakeSound = new("SprayCan.Shake");
+    public readonly SoundEvent SprayCanPaintSound = new("SprayCan.Paint");
+
     public override void Load(bool hotReload)
     {
         Core.Event.OnTick += OnTick;

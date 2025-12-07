@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-using System.ComponentModel.DataAnnotations;
 using System.Net;
 using System.Text;
 using System.Text.Json;
@@ -72,9 +71,7 @@ public partial class InventorySimulator
             }
             var responseContent = await response.Content.ReadAsStringAsync();
             if (string.IsNullOrEmpty(responseContent))
-            {
                 return default;
-            }
             return JsonSerializer.Deserialize<T>(responseContent);
         }
         catch (Exception error)
@@ -95,19 +92,17 @@ public partial class InventorySimulator
         for (var attempt = 0; attempt < 3; attempt++)
             try
             {
-                var playerInventory = await Fetch<PlayerInventory>(
+                var inventory = await Fetch<PlayerInventory>(
                     $"/api/equipped/v3/{steamId}.json",
                     true
                 );
-
-                if (playerInventory != null)
+                if (inventory != null)
                 {
                     if (existing != null)
-                        playerInventory.CachedWeaponEconItems = existing.CachedWeaponEconItems;
+                        inventory.CachedWeaponEconItems = existing.CachedWeaponEconItems;
                     PlayerCooldownManager[steamId] = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-                    AddPlayerInventory(steamId, playerInventory);
+                    AddPlayerInventory(steamId, inventory);
                 }
-
                 break;
             }
             catch
@@ -135,7 +130,7 @@ public partial class InventorySimulator
         {
             if (player.IsValid)
             {
-                player.PrintToChat(Localizer["invsim.ws_completed"]);
+                player.SendChat(Core.Localizer["invsim.ws_completed"]);
                 GiveOnLoadPlayerInventory(player);
                 GiveOnRefreshPlayerInventory(player, oldInventory);
             }
@@ -151,7 +146,6 @@ public partial class InventorySimulator
     {
         if (ApiKey.Value == "")
             return;
-
         await Send(
             "/api/increment-item-stattrak",
             new
@@ -167,25 +161,22 @@ public partial class InventorySimulator
     {
         if (AuthenticatingPlayer.ContainsKey(userId))
             return;
-
         AuthenticatingPlayer.TryAdd(userId, true);
         var response = await Send<SignInUserResponse>(
             "/api/sign-in",
             new { apiKey = ApiKey.Value, userId = userId.ToString() }
         );
         AuthenticatingPlayer.TryRemove(userId, out var _);
-
         Core.Scheduler.NextTick(() =>
         {
-            var player = Utilities.GetPlayerFromSteamId(userId);
+            var player = Utilities.GetPlayerFromSteamID(Core, userId);
             if (response == null)
             {
-                player?.PrintToChat(Localizer["invsim.login_failed"]);
+                player?.SendChat(Core.Localizer["invsim.login_failed"]);
                 return;
             }
-
-            player?.PrintToChat(
-                Localizer[
+            player?.SendChat(
+                Core.Localizer[
                     "invsim.login",
                     $"{GetAPIUrl("/api/sign-in/callback")}?token={response.Token}"
                 ]

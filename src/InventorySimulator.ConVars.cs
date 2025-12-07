@@ -61,7 +61,7 @@ public partial class InventorySimulator
     );
     public readonly IConVar<int> MinModels = core.ConVar.Create(
         "invsim_minmodels",
-        "Enable player agents (0 = enabled, 1 = disabled, 2 = use map models per team).",
+        "Enable player agents (0 = enabled, 1 = use map models per team, 2 = SAS & Phoenix).",
         0
     );
     public readonly IConVar<int> WsCooldown = core.ConVar.Create(

@@ -42,7 +42,7 @@ public partial class InventorySimulator
         PlayerInventoryManager[steamId] = inventory;
         Core.Scheduler.NextTick(() =>
         {
-            var player = Utilities.GetPlayerFromSteamId(steamId);
+            var player = Utilities.GetPlayerFromSteamID(Core, steamId);
             if (inventory.MusicKit != null || inventory.Graffiti != null)
                 PlayerOnTickInventoryManager[steamId] = (player, inventory);
             else
