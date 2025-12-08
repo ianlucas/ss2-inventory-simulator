@@ -1,0 +1,77 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Ian Lucas. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+using SwiftlyS2.Shared.Events;
+using SwiftlyS2.Shared.SchemaDefinitions;
+
+namespace InventorySimulator;
+
+public partial class InventorySimulator
+{
+    public void OnConVarValueChanged(IOnConVarValueChanged @event)
+    {
+        switch (@event.ConVarName)
+        {
+            case "invsim_file":
+            {
+                LoadPlayerInventories();
+                return;
+            }
+            case "invsim_require_inventory":
+            {
+                OnIsRequireInventoryChanged();
+                return;
+            }
+        }
+    }
+
+    public void OnTick()
+    {
+        foreach (var (player, inventory) in PlayerOnTickInventoryManager.Values)
+            if (player != null)
+                GivePlayerMusicKit(player, inventory);
+    }
+
+    public void OnEntityCreated(IOnEntityCreatedEvent @event)
+    {
+        var entity = @event.Entity;
+        var designerName = entity.DesignerName;
+        if (designerName.Contains("weapon"))
+        {
+            Core.Scheduler.NextTick(() =>
+            {
+                var weapon = entity.As<CBasePlayerWeapon>();
+                if (!weapon.IsValid || weapon.OriginalOwnerXuidLow == 0)
+                    return;
+                var player = Utilities.GetPlayerFromSteamID(Core, weapon.OriginalOwnerXuidLow);
+                if (player == null || player.IsFakeClient || !player.IsValid)
+                    return;
+                GivePlayerWeaponSkin(player, weapon);
+            });
+        }
+        else if (designerName == "player_spray_decal")
+        {
+            if (!IsSprayChangerEnabled.Value)
+                return;
+            Core.Scheduler.NextTick(() =>
+            {
+                var sprayDecal = entity.As<CPlayerSprayDecal>();
+                if (!sprayDecal.IsValid || sprayDecal.AccountID == 0)
+                    return;
+                var player = Utilities.GetPlayerFromSteamID(Core, sprayDecal.AccountID);
+                if (player == null || player.IsFakeClient || !player.IsValid)
+                    return;
+                GivePlayerGraffiti(player, sprayDecal);
+            });
+        }
+    }
+
+    public void OnClientProcessUsercmds(IOnClientProcessUsercmdsEvent @event)
+    {
+        if (!IsSprayOnUse.Value)
+            return;
+        SprayPlayerGraffitiThruPlayerButtons(Core.PlayerManager.GetPlayer(@event.PlayerId));
+    }
+}
