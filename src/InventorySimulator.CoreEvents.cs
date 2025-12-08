@@ -19,14 +19,16 @@ public partial class InventorySimulator
                 LoadPlayerInventories();
                 return;
             }
+            case "invsim_require_inventory":
+            {
+                OnIsRequireInventoryChanged();
+                return;
+            }
         }
     }
 
     public void OnTick()
     {
-        // According to @bklol the right way to change the Music Kit is to update the player's inventory, I'm
-        // pretty sure that's the best way to change anything inventory-related, but that's not something
-        // public and we brute force the setting of the Music Kit here.
         foreach (var (player, inventory) in PlayerOnTickInventoryManager.Values)
             if (player != null)
                 GivePlayerMusicKit(player, inventory);

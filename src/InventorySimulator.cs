@@ -37,6 +37,10 @@ public partial class InventorySimulator(ISwiftlyCore core) : BasePlugin(core)
         Core.GameEvent.HookPre<EventPlayerDeath>(OnPlayerDeathPre);
         Core.GameEvent.HookPre<EventRoundMvp>(OnRoundMvpPre);
         Core.GameEvent.HookPost<EventPlayerDisconnect>(OnPlayerDisconnect);
+        GameFunctions.CCSPlayer_ItemServices_GiveNamedItem.AddHook(OnGiveNamedItem);
+        GameFunctions.CCSPlayerController_UpdateTeamSelectionPreview.AddHook(
+            OnUpdateTeamSelectionPreview
+        );
         // hook give named item
         // hook update select team preview
     }

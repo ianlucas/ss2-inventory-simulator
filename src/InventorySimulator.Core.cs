@@ -449,4 +449,24 @@ public partial class InventorySimulator
             teamPreview.AgentItemUpdated();
         }
     }
+
+    public void OnIsRequireInventoryChanged()
+    {
+        if (IsRequireInventory.Value)
+        {
+            OnConnectHookGuid = GameFunctions.CServerSideClientBase_Connect.AddHook(OnConnect);
+            OnSetSignonStateHookGuid = GameFunctions.CServerSideClientBase_SetSignonState.AddHook(
+                OnSetSignonState
+            );
+        }
+        else
+        {
+            if (OnConnectHookGuid != null)
+                GameFunctions.CServerSideClientBase_Connect.RemoveHook(OnConnectHookGuid.Value);
+            if (OnSetSignonStateHookGuid != null)
+                GameFunctions.CServerSideClientBase_SetSignonState.RemoveHook(
+                    OnSetSignonStateHookGuid.Value
+                );
+        }
+    }
 }

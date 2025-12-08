@@ -215,7 +215,8 @@ public class PlayerInventory(
         {
             return knife;
         }
-        if (fallback && Knives.TryGetValue(EntityUtils.ToggleTeam(team), out knife))
+        // TODO Refactor this castfest.
+        if (fallback && Knives.TryGetValue((byte)PlayerHelpers.ToggleTeam((Team)team), out knife))
         {
             return knife;
         }
@@ -233,7 +234,10 @@ public class PlayerInventory(
         {
             return weapon;
         }
-        if (fallback && GetWeapons(EntityUtils.ToggleTeam(team)).TryGetValue(def, out weapon))
+        if (
+            fallback
+            && GetWeapons((byte)PlayerHelpers.ToggleTeam((Team)team)).TryGetValue(def, out weapon)
+        )
         {
             return weapon;
         }
@@ -246,7 +250,7 @@ public class PlayerInventory(
         {
             return glove;
         }
-        if (fallback && Gloves.TryGetValue(EntityUtils.ToggleTeam(team), out glove))
+        if (fallback && Gloves.TryGetValue((byte)PlayerHelpers.ToggleTeam((Team)team), out glove))
         {
             return glove;
         }

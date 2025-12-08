@@ -15,7 +15,7 @@ public static class GameFunctions
 
     public delegate nint CCSPlayer_ItemServices_GiveNamedItemDelegate(
         nint thisPtr,
-        nint itemName,
+        nint pchName,
         int subType,
         nint itemDef,
         byte forceGive,
@@ -67,7 +67,7 @@ public static class GameFunctions
         IUnmanagedFunction<CCSPlayerController_UpdateTeamSelectionPreviewDelegate>
     > _lazyUpdateTeamSelectionPreview = new(() =>
         LoadFunction<CCSPlayerController_UpdateTeamSelectionPreviewDelegate>(
-            "CCSPlayerController::UpdateSelectTeamPreview"
+            "CCSPlayerController::UpdateTeamSelectionPreview"
         )
     );
 

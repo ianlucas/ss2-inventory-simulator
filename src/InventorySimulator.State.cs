@@ -22,7 +22,7 @@ public partial class InventorySimulator
     public readonly ConcurrentDictionary<ulong, PlayerInventory> PlayerInventoryManager = [];
     public readonly ConcurrentDictionary<ulong, CancellationTokenSource> PlayerUseCmdManager = [];
     public readonly ConcurrentDictionary<ulong, bool> PlayerUseCmdBlockManager = [];
-    public readonly ConcurrentDictionary<IntPtr, short> ServerSideClientUserid = [];
+    public readonly ConcurrentDictionary<IntPtr, ushort> ServerSideClientUserid = [];
 
     public readonly PlayerInventory EmptyInventory = new();
 
@@ -31,4 +31,6 @@ public partial class InventorySimulator
     public static readonly ulong MinimumCustomItemID = 68719476736;
 
     public ulong NextItemId = MinimumCustomItemID;
+    public Guid? OnConnectHookGuid = null;
+    public Guid? OnSetSignonStateHookGuid = null;
 }
