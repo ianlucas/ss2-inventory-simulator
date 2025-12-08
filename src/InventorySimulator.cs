@@ -41,8 +41,6 @@ public partial class InventorySimulator(ISwiftlyCore core) : BasePlugin(core)
         GameFunctions.CCSPlayerController_UpdateTeamSelectionPreview.AddHook(
             OnUpdateTeamSelectionPreview
         );
-        // hook give named item
-        // hook update select team preview
     }
 
     public override void Unload() { }
