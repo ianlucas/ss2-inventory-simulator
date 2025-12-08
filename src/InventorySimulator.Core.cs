@@ -3,13 +3,13 @@
 *  Licensed under the MIT License. See License.txt in the project root for license information.
 *--------------------------------------------------------------------------------------------*/
 
+using CS2Lib;
 using CS2Lib.SwiftlyCS2.Core;
 using CS2Lib.SwiftlyCS2.Extensions;
 using SwiftlyS2.Shared.Events;
 using SwiftlyS2.Shared.Natives;
 using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.SchemaDefinitions;
-using static CS2Lib.CS2Lib;
 
 namespace InventorySimulator;
 
@@ -100,7 +100,7 @@ public partial class InventorySimulator
                 item.Patches.Count != 5 ? [.. Enumerable.Repeat((uint)0, 5)] : item.Patches;
             SetPlayerModel(
                 player,
-                EntityUtils.GetAgentModelPath(item.Model),
+                PlayerHelpers.GetAgentModelPath(item.Model),
                 item.VoFallback,
                 item.VoPrefix,
                 item.VoFemale,
@@ -113,7 +113,7 @@ public partial class InventorySimulator
     {
         if (IsCustomWeaponItemID(weapon))
             return;
-        var isKnife = IsMeleeDesignerName(weapon.DesignerName);
+        var isKnife = CS2Items.IsMeleeDesignerName(weapon.DesignerName);
         var entityDef = weapon.AttributeManager.Item.ItemDefinitionIndex;
         var inventory = GetPlayerInventory(player);
         var fallback = IsFallbackTeam.Value;
@@ -145,17 +145,17 @@ public partial class InventorySimulator
                 || weapon.FallbackStatTrak >= 999_999
             )
                 return;
-            var isKnife = IsMeleeDesignerName(designerName);
+            var isKnife = CS2Items.IsMeleeDesignerName(designerName);
             var newValue = weapon.FallbackStatTrak + 1;
             var def = weapon.AttributeManager.Item.ItemDefinitionIndex;
             weapon.FallbackStatTrak = newValue;
             weapon.AttributeManager.Item.NetworkedDynamicAttributes.SetOrAddAttribute(
                 "kill eater",
-                EngineUtils.ViewAs<int, float>(newValue)
+                UnsafeHelpers.ViewAs<int, float>(newValue)
             );
             weapon.AttributeManager.Item.AttributeList.SetOrAddAttribute(
                 "kill eater",
-                EngineUtils.ViewAs<int, float>(newValue)
+                UnsafeHelpers.ViewAs<int, float>(newValue)
             );
             var inventory = GetPlayerInventory(player);
             var fallback = IsFallbackTeam.Value;

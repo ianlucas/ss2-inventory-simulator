@@ -12,7 +12,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="IanLucas.CS2Lib.SwiftlyCS2" Version="0.2.0" />
+    <PackageReference Include="IanLucas.CS2Lib.SwiftlyCS2" Version="0.4.0" />
     <PackageReference Include="SwiftlyS2.CS2" Version="1.0.4" ExcludeAssets="runtime" PrivateAssets="all" />
   </ItemGroup>
 

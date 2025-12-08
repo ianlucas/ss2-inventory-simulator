@@ -3,11 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+using CS2Lib;
 using CS2Lib.SwiftlyCS2.Core;
 using CS2Lib.SwiftlyCS2.Extensions;
 using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.SchemaDefinitions;
-using static CS2Lib.CS2Lib;
 
 namespace InventorySimulator;
 
@@ -36,7 +36,8 @@ public partial class InventorySimulator
     )
     {
         var designerName = weapon?.DesignerName;
-        var isKnife = designerName != null ? IsMeleeDesignerName(designerName) : item.IsMelee();
+        var isKnife =
+            designerName != null ? CS2Items.IsMeleeDesignerName(designerName) : item.IsMelee();
         var entityDef =
             weapon?.AttributeManager.Item.ItemDefinitionIndex ?? item.ItemDefinitionIndex;
         if (isKnife)
@@ -75,12 +76,12 @@ public partial class InventorySimulator
             weapon?.FallbackStatTrak = weaponItem.Stattrak;
             item.NetworkedDynamicAttributes.SetOrAddAttribute(
                 "kill eater",
-                EngineUtils.ViewAs<int, float>(weaponItem.Stattrak)
+                UnsafeHelpers.ViewAs<int, float>(weaponItem.Stattrak)
             );
             item.NetworkedDynamicAttributes.SetOrAddAttribute("kill eater score type", 0);
             item.AttributeList.SetOrAddAttribute(
                 "kill eater",
-                EngineUtils.ViewAs<int, float>(weaponItem.Stattrak)
+                UnsafeHelpers.ViewAs<int, float>(weaponItem.Stattrak)
             );
             item.AttributeList.SetOrAddAttribute("kill eater score type", 0);
         }
@@ -91,7 +92,7 @@ public partial class InventorySimulator
                 var slot = $"sticker slot {sticker.Slot}";
                 item.NetworkedDynamicAttributes.SetOrAddAttribute(
                     $"{slot} id",
-                    EngineUtils.ViewAs<uint, float>(sticker.Def)
+                    UnsafeHelpers.ViewAs<uint, float>(sticker.Def)
                 );
                 item.NetworkedDynamicAttributes.SetOrAddAttribute($"{slot} wear", sticker.Wear);
                 if (sticker.Rotation != null)
