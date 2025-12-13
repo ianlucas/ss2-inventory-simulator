@@ -10,39 +10,30 @@ namespace InventorySimulator;
 
 public partial class InventorySimulator
 {
-    public GameFunctions.CServerSideClientBase_ConnectDelegate OnConnect(
-        Func<GameFunctions.CServerSideClientBase_ConnectDelegate> next
+    public GameFunctions.CServerSideClientBase_ActivatePlayerDelegate OnActivatePlayer(
+        Func<GameFunctions.CServerSideClientBase_ActivatePlayerDelegate> next
     )
     {
-        return (thisPtr, a2, a3, userId, a5, a6, a7) =>
+        return (thisPtr) =>
         {
-            ServerSideClientUserid[thisPtr] = userId;
-            return next()(thisPtr, a2, a3, userId, a5, a6, a7);
-        };
-    }
-
-    public GameFunctions.CServerSideClientBase_SetSignonStateDelegate OnSetSignonState(
-        Func<GameFunctions.CServerSideClientBase_SetSignonStateDelegate> next
-    )
-    {
-        return (thisPtr, newSignonState) =>
-        {
-            var userid = ServerSideClientUserid.TryGetValue(thisPtr, out var id)
-                ? (ushort?)id
-                : null;
-            if (userid != null)
-            {
-                var player = Core.PlayerManager.GetPlayer((int)userid);
-                if (player != null && !player.IsFakeClient && player.Controller != null)
+            var userid = (ushort)Marshal.ReadInt16(thisPtr + (IsWindows ? 160 : 168));
+            var player = Core.PlayerManager.GetPlayer(userid);
+            if (player != null && !player.IsFakeClient && player.Controller != null)
+                if (!PlayerInventoryManager.ContainsKey(player.SteamID))
                 {
+                    PlayerInventoryPostFetchHandlers[player.SteamID] = () =>
+                        Core.Scheduler.NextTick(() =>
+                        {
+                            if (player.Controller.IsValid)
+                                GameFunctions.CServerSideClientBase_ActivatePlayer.CallOriginal(
+                                    thisPtr
+                                );
+                        });
                     if (!FetchingPlayerInventory.ContainsKey(player.SteamID))
                         RefreshPlayerInventory(player);
-                    var allowed = PlayerInventoryManager.ContainsKey(player.SteamID);
-                    if (newSignonState >= 0 && !allowed)
-                        return 0;
+                    return;
                 }
-            }
-            return next()(thisPtr, newSignonState);
+            next()(thisPtr);
         };
     }
 

@@ -58,10 +58,10 @@ public partial class InventorySimulator
             .ToHashSet();
         var disconnected = PlayerInventoryManager.Keys.Except(connected).ToList();
         foreach (var steamId in disconnected)
-            RemovePlayerInventory(steamId);
+            ClearPlayerInventory(steamId);
     }
 
-    public void RemovePlayerInventory(ulong steamId)
+    public void ClearPlayerInventory(ulong steamId)
     {
         if (!LoadedPlayerInventory.ContainsKey(steamId))
         {
@@ -80,11 +80,9 @@ public partial class InventorySimulator
         PlayerUseCmdBlockManager.Remove(steamId, out var _);
     }
 
-    public void ClearPlayerServerSideClient(int? userid)
+    public void ClearPlayerInventoryPostFetchHandler(ulong steamId)
     {
-        var key = ServerSideClientUserid.FirstOrDefault(other => other.Value == userid).Key;
-        if (key != default)
-            ServerSideClientUserid.TryRemove(key, out _);
+        PlayerInventoryPostFetchHandlers.TryRemove(steamId, out _);
     }
 
     public PlayerInventory GetPlayerInventory(IPlayer player)

@@ -15,15 +15,11 @@ public partial class InventorySimulator
         switch (@event.ConVarName)
         {
             case "invsim_file":
-            {
-                LoadPlayerInventories();
+                OnFileChanged();
                 return;
-            }
             case "invsim_require_inventory":
-            {
                 OnIsRequireInventoryChanged();
                 return;
-            }
         }
     }
 

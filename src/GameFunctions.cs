@@ -34,20 +34,7 @@ public static class GameFunctions
         int teamIndex
     );
 
-    public delegate byte CServerSideClientBase_SetSignonStateDelegate(
-        nint thisPtr,
-        uint newSignonState
-    );
-
-    public delegate byte CServerSideClientBase_ConnectDelegate(
-        nint thisPtr,
-        nint unknown,
-        nint playerName,
-        ushort userId,
-        nint netChannel,
-        byte connectionTypeFlags,
-        int challengeNr
-    );
+    public delegate void CServerSideClientBase_ActivatePlayerDelegate(nint thisPtr);
 
     private static readonly Lazy<
         IUnmanagedFunction<CCSPlayer_ItemServices_GiveNamedItemDelegate>
@@ -72,17 +59,11 @@ public static class GameFunctions
     );
 
     private static readonly Lazy<
-        IUnmanagedFunction<CServerSideClientBase_SetSignonStateDelegate>
-    > _lazySetSignonState = new(() =>
-        LoadFunction<CServerSideClientBase_SetSignonStateDelegate>(
-            "CServerSideClientBase::SetSignonState"
+        IUnmanagedFunction<CServerSideClientBase_ActivatePlayerDelegate>
+    > _lazyActivatePlayer = new(() =>
+        LoadFunction<CServerSideClientBase_ActivatePlayerDelegate>(
+            "CServerSideClientBase::ActivatePlayer"
         )
-    );
-
-    private static readonly Lazy<
-        IUnmanagedFunction<CServerSideClientBase_ConnectDelegate>
-    > _lazyConnect = new(() =>
-        LoadFunction<CServerSideClientBase_ConnectDelegate>("CServerSideClientBase::Connect")
     );
 
     public static IUnmanagedFunction<CCSPlayer_ItemServices_GiveNamedItemDelegate> CCSPlayer_ItemServices_GiveNamedItem =>
@@ -94,11 +75,8 @@ public static class GameFunctions
     public static IUnmanagedFunction<CCSPlayerController_UpdateTeamSelectionPreviewDelegate> CCSPlayerController_UpdateTeamSelectionPreview =>
         _lazyUpdateTeamSelectionPreview.Value;
 
-    public static IUnmanagedFunction<CServerSideClientBase_SetSignonStateDelegate> CServerSideClientBase_SetSignonState =>
-        _lazySetSignonState.Value;
-
-    public static IUnmanagedFunction<CServerSideClientBase_ConnectDelegate> CServerSideClientBase_Connect =>
-        _lazyConnect.Value;
+    public static IUnmanagedFunction<CServerSideClientBase_ActivatePlayerDelegate> CServerSideClientBase_ActivatePlayer =>
+        _lazyActivatePlayer.Value;
 
     private static IUnmanagedFunction<TDelegate> LoadFunction<TDelegate>(string signature)
         where TDelegate : Delegate

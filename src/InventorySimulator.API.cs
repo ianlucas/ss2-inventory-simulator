@@ -110,6 +110,11 @@ public partial class InventorySimulator
                 // Try again to fetch data (up to 3 times).
             }
         FetchingPlayerInventory.Remove(steamId, out var _);
+        if (PlayerInventoryPostFetchHandlers.TryGetValue(steamId, out var callback))
+        {
+            callback();
+            PlayerInventoryPostFetchHandlers.TryRemove(steamId, out _);
+        }
     }
 
     public async void RefreshPlayerInventory(IPlayer player, bool force = false)

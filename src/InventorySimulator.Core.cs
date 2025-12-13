@@ -450,23 +450,20 @@ public partial class InventorySimulator
         }
     }
 
+    public void OnFileChanged()
+    {
+        LoadPlayerInventories();
+    }
+
     public void OnIsRequireInventoryChanged()
     {
         if (IsRequireInventory.Value)
-        {
-            OnConnectHookGuid = GameFunctions.CServerSideClientBase_Connect.AddHook(OnConnect);
-            OnSetSignonStateHookGuid = GameFunctions.CServerSideClientBase_SetSignonState.AddHook(
-                OnSetSignonState
+            OnActivatePlayerHookGuid = GameFunctions.CServerSideClientBase_ActivatePlayer.AddHook(
+                OnActivatePlayer
             );
-        }
-        else
-        {
-            if (OnConnectHookGuid != null)
-                GameFunctions.CServerSideClientBase_Connect.RemoveHook(OnConnectHookGuid.Value);
-            if (OnSetSignonStateHookGuid != null)
-                GameFunctions.CServerSideClientBase_SetSignonState.RemoveHook(
-                    OnSetSignonStateHookGuid.Value
-                );
-        }
+        else if (OnActivatePlayerHookGuid != null)
+            GameFunctions.CServerSideClientBase_ActivatePlayer.RemoveHook(
+                OnActivatePlayerHookGuid.Value
+            );
     }
 }

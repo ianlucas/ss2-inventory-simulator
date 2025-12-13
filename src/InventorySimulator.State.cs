@@ -22,7 +22,7 @@ public partial class InventorySimulator
     public readonly ConcurrentDictionary<ulong, PlayerInventory> PlayerInventoryManager = [];
     public readonly ConcurrentDictionary<ulong, CancellationTokenSource> PlayerUseCmdManager = [];
     public readonly ConcurrentDictionary<ulong, bool> PlayerUseCmdBlockManager = [];
-    public readonly ConcurrentDictionary<IntPtr, ushort> ServerSideClientUserid = [];
+    public readonly ConcurrentDictionary<ulong, Action> PlayerInventoryPostFetchHandlers = [];
 
     public readonly PlayerInventory EmptyInventory = new();
 
@@ -30,7 +30,8 @@ public partial class InventorySimulator
     public static readonly string InventoryFileDir = "csgo/addons/swiftlycs2/configs";
     public static readonly ulong MinimumCustomItemID = 68719476736;
 
+    public static readonly bool IsWindows = OperatingSystem.IsWindows();
+
     public ulong NextItemId = MinimumCustomItemID;
-    public Guid? OnConnectHookGuid = null;
-    public Guid? OnSetSignonStateHookGuid = null;
+    public Guid? OnActivatePlayerHookGuid = null;
 }

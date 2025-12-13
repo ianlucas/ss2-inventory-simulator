@@ -81,8 +81,8 @@ public partial class InventorySimulator
         if (player != null && !player.IsFakeClient)
         {
             ClearPlayerUseCmd(player.SteamID);
-            ClearPlayerServerSideClient(player.PlayerID);
-            RemovePlayerInventory(player.SteamID);
+            ClearPlayerInventoryPostFetchHandler(player.SteamID);
+            ClearPlayerInventory(player.SteamID);
             ClearInventoryManager();
         }
         return HookResult.Continue;
