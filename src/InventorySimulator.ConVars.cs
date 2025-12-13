@@ -37,7 +37,7 @@ public partial class InventorySimulator
     public readonly IConVar<string> WsUrlPrintFormat = core.ConVar.Create(
         "invsim_ws_url_print_format",
         "URL format string displayed when using the !ws command.",
-        "{host}"
+        "{Host}"
     );
     public readonly IConVar<bool> IsWsGlovesFix = core.ConVar.Create(
         "invsim_ws_gloves_fix",
