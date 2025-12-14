@@ -6,6 +6,7 @@
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Memory;
 using SwiftlyS2.Shared.SchemaDefinitions;
+using SwiftlyS2.Shared.Schemas;
 
 namespace InventorySimulator;
 
@@ -29,17 +30,12 @@ public static class Natives
         nint eyePosOut
     );
 
-    public delegate long CCSPlayerController_UpdateTeamSelectionPreviewDelegate(
-        nint thisPtr,
-        int teamIndex
-    );
-
     public delegate void CServerSideClientBase_ActivatePlayerDelegate(nint thisPtr);
 
     public delegate nint CCSPlayerInventory_GetItemInLoadoutDelegate(
-        nint pInventory,
-        int team,
-        int slot
+        nint thisPtr,
+        int iTeam,
+        int iSlot
     );
 
     private static readonly Lazy<
@@ -54,14 +50,6 @@ public static class Natives
         IUnmanagedFunction<CCSPlayerPawn_IsAbleToApplySprayDelegate>
     > _lazyIsAbleToApplySpray = new(() =>
         FromSignature<CCSPlayerPawn_IsAbleToApplySprayDelegate>("CCSPlayerPawn::IsAbleToApplySpray")
-    );
-
-    private static readonly Lazy<
-        IUnmanagedFunction<CCSPlayerController_UpdateTeamSelectionPreviewDelegate>
-    > _lazyUpdateTeamSelectionPreview = new(() =>
-        FromSignature<CCSPlayerController_UpdateTeamSelectionPreviewDelegate>(
-            "CCSPlayerController::UpdateTeamSelectionPreview"
-        )
     );
 
     private static readonly Lazy<
@@ -85,9 +73,6 @@ public static class Natives
 
     public static IUnmanagedFunction<CCSPlayerPawn_IsAbleToApplySprayDelegate> CCSPlayerPawn_IsAbleToApplySpray =>
         _lazyIsAbleToApplySpray.Value;
-
-    public static IUnmanagedFunction<CCSPlayerController_UpdateTeamSelectionPreviewDelegate> CCSPlayerController_UpdateTeamSelectionPreview =>
-        _lazyUpdateTeamSelectionPreview.Value;
 
     public static IUnmanagedFunction<CServerSideClientBase_ActivatePlayerDelegate> CServerSideClientBase_ActivatePlayer =>
         _lazyActivatePlayer.Value;
@@ -128,6 +113,16 @@ public static class Natives
                 "Natives not initialized. Call Initialize() first."
             );
         return _core.GameData.GetOffset(offset);
+    }
+
+    public static T ToSchemaClass<T>(nint address)
+        where T : class, ISchemaClass<T>
+    {
+        if (_core is null)
+            throw new InvalidOperationException(
+                "Natives not initialized. Call Initialize() first."
+            );
+        return _core.Memory.ToSchemaClass<T>(address);
     }
 
     public static void Initialize(ISwiftlyCore core)

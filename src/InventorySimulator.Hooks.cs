@@ -38,22 +38,6 @@ public partial class InventorySimulator
         };
     }
 
-    public Natives.CCSPlayerController_UpdateTeamSelectionPreviewDelegate OnUpdateTeamSelectionPreview(
-        Func<Natives.CCSPlayerController_UpdateTeamSelectionPreviewDelegate> next
-    )
-    {
-        return (thisPtr, a2) =>
-        {
-            var ret = next()(thisPtr, a2);
-            // var controller = Core.Memory.ToSchemaClass<CCSPlayerController>(thisPtr);
-            // // TODO Pass controller directly to GiveTeamPreviewItems.
-            // var player = Core.PlayerManager.GetPlayerFromSteamID(controller.SteamID);
-            // if (player != null)
-            //     GiveTeamPreviewItems("team_select", player);
-            return ret;
-        };
-    }
-
     public Natives.CCSPlayer_ItemServices_GiveNamedItemDelegate OnGiveNamedItem(
         Func<Natives.CCSPlayer_ItemServices_GiveNamedItemDelegate> next
     )
@@ -112,10 +96,12 @@ public partial class InventorySimulator
                     // Console.WriteLine(
                     //     $"[GetItemInLoadout^] inventory={nativeInventory.Address} team={(Team)team} slot={(loadout_slot_t)slot} def={item.ItemDefinitionIndex}"
                     // );
+                    var steamId = nativeInventory.SOCache.Owner.SteamID;
                     var isFallbackTeam = IsFallbackTeam.Value;
                     var inventory = GetPlayerInventoryBySteamID(
                         nativeInventory.SOCache.Owner.SteamID
                     );
+                    item.AccountID = (uint)steamId;
                     if (
                         (loadout_slot_t)slot >= loadout_slot_t.LOADOUT_SLOT_MELEE
                         && (loadout_slot_t)slot <= loadout_slot_t.LOADOUT_SLOT_EQUIPMENT5
@@ -150,6 +136,21 @@ public partial class InventorySimulator
                     )
                     {
                         item.ItemDefinitionIndex = agentItem.Def.Value;
+                        for (var i = 0; i < agentItem.Patches.Count; i++)
+                        {
+                            var patch = agentItem.Patches[i];
+                            if (patch != 0)
+                            {
+                                // item.NetworkedDynamicAttributes.SetOrAddAttribute(
+                                //     $"sticker slot {i} id",
+                                //     UnsafeHelpers.ViewAs<uint, float>(patch)
+                                // );
+                                item.AttributeList.SetOrAddAttribute(
+                                    $"sticker slot {i} id",
+                                    UnsafeHelpers.ViewAs<uint, float>(patch)
+                                );
+                            }
+                        }
                     }
                     else if ((loadout_slot_t)slot == loadout_slot_t.LOADOUT_SLOT_FIRST_COSMETIC)
                     {
@@ -166,11 +167,6 @@ public partial class InventorySimulator
                     {
                         if (inventory.MusicKit != null)
                         {
-                            item.AttributeList.Attributes.RemoveAll();
-                            item.AttributeList.SetOrAddAttribute(
-                                "music id",
-                                UnsafeHelpers.ViewAs<int, float>(inventory.MusicKit.Def)
-                            );
                             item.NetworkedDynamicAttributes.Attributes.RemoveAll();
                             item.NetworkedDynamicAttributes.SetOrAddAttribute(
                                 "music id",

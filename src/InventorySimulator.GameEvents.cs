@@ -34,24 +34,6 @@ public partial class InventorySimulator
         RefreshPlayerInventory(player);
     }
 
-    public HookResult OnRoundPrestart(EventRoundPrestart @event)
-    {
-        Core.Scheduler.NextTick(() =>
-        {
-            if (Core.EntitySystem.GetGameRules()?.TeamIntroPeriod == true)
-                GiveTeamPreviewItems("team_intro");
-        });
-        return HookResult.Continue;
-    }
-
-    public HookResult OnPlayerSpawn(EventPlayerSpawn @event)
-    {
-        var player = @event.UserIdPlayer;
-        if (player != null && !player.IsFakeClient && player.IsValid)
-            GiveOnPlayerSpawn(player);
-        return HookResult.Continue;
-    }
-
     public HookResult OnPlayerDeathPre(EventPlayerDeath @event)
     {
         var attacker = Core.PlayerManager.GetPlayer(@event.Attacker);

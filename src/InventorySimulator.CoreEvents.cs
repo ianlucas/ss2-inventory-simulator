@@ -23,33 +23,11 @@ public partial class InventorySimulator
         }
     }
 
-    public void OnTick()
-    {
-        foreach (var (player, inventory) in PlayerOnTickInventoryManager.Values)
-            if (player != null)
-            {
-                // GivePlayerMusicKit(player, inventory);
-            }
-    }
-
     public void OnEntityCreated(IOnEntityCreatedEvent @event)
     {
         var entity = @event.Entity;
         var designerName = entity.DesignerName;
-        if (designerName.Contains("weapon"))
-        {
-            // Core.Scheduler.NextTick(() =>
-            // {
-            //     var weapon = entity.As<CBasePlayerWeapon>();
-            //     if (!weapon.IsValid || weapon.OriginalOwnerXuidLow == 0)
-            //         return;
-            //     var player = Core.PlayerManager.GetPlayerFromSteamID(weapon.OriginalOwnerXuidLow);
-            //     if (player == null || player.IsFakeClient || !player.IsValid)
-            //         return;
-            //     GivePlayerWeaponSkin(player, weapon);
-            // });
-        }
-        else if (designerName == "player_spray_decal")
+        if (designerName == "player_spray_decal")
         {
             if (!IsSprayChangerEnabled.Value)
                 return;

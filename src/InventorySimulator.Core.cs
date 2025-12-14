@@ -15,112 +15,6 @@ namespace InventorySimulator;
 
 public partial class InventorySimulator
 {
-    public void GivePlayerMusicKit(IPlayer player, PlayerInventory inventory)
-    {
-        if (!player.IsValid || player.IsFakeClient)
-            return;
-        if (player.Controller.InventoryServices == null)
-            return;
-        var item = inventory.MusicKit;
-        if (item != null)
-        {
-            player.Controller.InventoryServices.MusicID = (ushort)item.Def;
-            player.Controller.InventoryServices.MusicIDUpdated();
-            player.Controller.MusicKitID = item.Def;
-            player.Controller.MusicKitIDUpdated();
-            player.Controller.MusicKitMVPs = item.Stattrak;
-            player.Controller.MusicKitMVPsUpdated();
-        }
-    }
-
-    public void GivePlayerPin(IPlayer player, PlayerInventory inventory)
-    {
-        if (player.Controller.InventoryServices == null)
-            return;
-        var pin = inventory.Pin;
-        if (pin == null)
-            return;
-        for (var index = 0; index < player.Controller.InventoryServices.Rank.ElementCount; index++)
-        {
-            player.Controller.InventoryServices.Rank[index] =
-                index == 5 ? (MedalRank_t)pin.Value : MedalRank_t.MEDAL_RANK_NONE;
-            player.Controller.InventoryServicesUpdated();
-        }
-    }
-
-    public void GivePlayerGloves(IPlayer player, PlayerInventory inventory)
-    {
-        var pawn = player.PlayerPawn;
-        if (pawn?.IsValid != true)
-            return;
-        var fallback = IsFallbackTeam.Value;
-        var item = inventory.GetGloves(player.Controller.TeamNum, fallback);
-        if (item != null)
-        {
-            // Workaround by @daffyyyy.
-            if (IsWsGlovesFix.Value)
-            {
-                var model = pawn
-                    .CBodyComponent?.SceneNode?.GetSkeletonInstance()
-                    ?.ModelState.ModelName;
-                if (!string.IsNullOrEmpty(model))
-                {
-                    pawn.SetModel("characters/models/tm_jumpsuit/tm_jumpsuit_varianta.vmdl");
-                    pawn.SetModel(model);
-                }
-            }
-            var glove = pawn.EconGloves;
-            Core.Scheduler.NextTick(() =>
-            {
-                if (pawn.IsValid)
-                {
-                    ApplyGloveAttributesFromItem(glove, item);
-                    // Thanks to xstage and stefanx111
-                    pawn.AcceptInput("SetBodygroup", value: "default_gloves,1");
-                }
-            });
-        }
-    }
-
-    public void GivePlayerAgent(IPlayer player, PlayerInventory inventory)
-    {
-        if (MinModels.Value > 0)
-        {
-            // For now any value non-zero will force SAS & Phoenix.
-            // In the future: 1 - Map agents only, 2 - SAS & Phoenix.
-            if (player.Controller.Team == Team.T)
-                SetPlayerModel(player, "characters/models/tm_phoenix/tm_phoenix.vmdl");
-            if (player.Controller.Team == Team.CT)
-                SetPlayerModel(player, "characters/models/ctm_sas/ctm_sas.vmdl");
-            return;
-        }
-        if (inventory.Agents.TryGetValue(player.Controller.TeamNum, out var item))
-        {
-            var patches =
-                item.Patches.Count != 5 ? [.. Enumerable.Repeat((uint)0, 5)] : item.Patches;
-            SetPlayerModel(
-                player,
-                PlayerHelpers.GetAgentModelPath(item.Model),
-                item.VoFallback,
-                item.VoPrefix,
-                item.VoFemale,
-                patches
-            );
-        }
-    }
-
-    public void GivePlayerWeaponSkin(IPlayer player, CBasePlayerWeapon weapon)
-    {
-        var isKnife = CS2Items.IsMeleeDesignerName(weapon.DesignerName);
-        if (!isKnife)
-            return;
-        var inventory = GetPlayerInventory(player);
-        var item = inventory.GetKnife(player.Controller.TeamNum, IsFallbackTeam.Value);
-        if (item != null && weapon.AttributeManager.Item.ItemDefinitionIndex != item.Def)
-            // Thanks to xstage and stefanx111
-            weapon.AcceptInput("ChangeSubclass", value: item.Def.ToString());
-    }
-
     public void GivePlayerWeaponStatTrakIncrement(
         IPlayer player,
         string designerName,
@@ -142,12 +36,7 @@ public partial class InventorySimulator
             var isKnife = CS2Items.IsMeleeDesignerName(designerName);
             var newValue = weapon.FallbackStatTrak + 1;
             var def = weapon.AttributeManager.Item.ItemDefinitionIndex;
-            weapon.FallbackStatTrak = newValue;
             weapon.AttributeManager.Item.NetworkedDynamicAttributes.SetOrAddAttribute(
-                "kill eater",
-                UnsafeHelpers.ViewAs<int, float>(newValue)
-            );
-            weapon.AttributeManager.Item.AttributeList.SetOrAddAttribute(
                 "kill eater",
                 UnsafeHelpers.ViewAs<int, float>(newValue)
             );
@@ -288,29 +177,11 @@ public partial class InventorySimulator
         }
     }
 
-    public void GiveOnPlayerSpawn(IPlayer player)
-    {
-        // var inventory = GetPlayerInventory(player);
-        // GivePlayerPin(player, inventory);
-        // GivePlayerAgent(player, inventory);
-        // GivePlayerGloves(player, inventory);
-    }
-
-    public void GiveOnLoadPlayerInventory(IPlayer player)
-    {
-        // GiveTeamPreviewItems("team_select", player);
-        // GiveTeamPreviewItems("team_intro", player);
-    }
-
     public void GiveOnRefreshPlayerInventory(IPlayer player, PlayerInventory oldInventory)
     {
-        // var inventory = GetPlayerInventory(player);
-        // GivePlayerPin(player, inventory);
-        // if (IsWsImmediately.Value)
-        // {
-        //     GivePlayerGloves(player, inventory);
-        //     GivePlayerCurrentWeapons(player, inventory, oldInventory);
-        // }
+        var inventory = GetPlayerInventory(player);
+        if (IsWsImmediately.Value)
+            GivePlayerCurrentWeapons(player, inventory, oldInventory);
     }
 
     public void GivePlayerGraffiti(IPlayer player, CPlayerSprayDecal sprayDecal)
@@ -387,60 +258,6 @@ public partial class InventorySimulator
                         player.ExecuteCommand("css_spray");
                 }
             );
-        }
-    }
-
-    public void GiveTeamPreviewItems(string prefix, IPlayer? player = null)
-    {
-        var teamPreviews = TeamSelectSuffixes.SelectMany(team =>
-            Core.EntitySystem.GetAllEntitiesByDesignerName<CCSGO_TeamPreviewCharacterPosition>(
-                $"{prefix}_{team}"
-            )
-        );
-        foreach (var teamPreview in teamPreviews)
-        {
-            if (teamPreview.Xuid == 0 || (player != null && player.SteamID != teamPreview.Xuid))
-                continue;
-            player ??= Core.PlayerManager.GetPlayerFromSteamID(teamPreview.Xuid);
-            if (player == null || !player.IsValid)
-                continue;
-            var inventory = GetPlayerInventory(player);
-            GivePlayerTeamPreview(player, teamPreview, inventory);
-        }
-    }
-
-    public void GivePlayerTeamPreview(
-        IPlayer player,
-        CCSGO_TeamPreviewCharacterPosition teamPreview,
-        PlayerInventory inventory
-    )
-    {
-        var fallback = IsFallbackTeam.Value;
-        var gloveItem = inventory.GetGloves(player.Controller.TeamNum, fallback);
-        if (gloveItem != null)
-        {
-            ApplyGloveAttributesFromItem(teamPreview.GlovesItem, gloveItem);
-            teamPreview.GlovesItemUpdated();
-        }
-        var weaponItem = teamPreview.WeaponItem.IsMelee()
-            ? inventory.GetKnife(player.Controller.TeamNum, fallback)
-            : inventory.GetWeapon(
-                player.Controller.TeamNum,
-                teamPreview.WeaponItem.ItemDefinitionIndex,
-                fallback
-            );
-        if (weaponItem != null)
-        {
-            ApplyWeaponAttributesFromItem(teamPreview.WeaponItem, weaponItem);
-            teamPreview.WeaponItemUpdated();
-        }
-        if (
-            inventory.Agents.TryGetValue(player.Controller.TeamNum, out var agentItem)
-            && agentItem.Def != null
-        )
-        {
-            teamPreview.AgentItem.ItemDefinitionIndex = agentItem.Def.Value;
-            teamPreview.AgentItemUpdated();
         }
     }
 

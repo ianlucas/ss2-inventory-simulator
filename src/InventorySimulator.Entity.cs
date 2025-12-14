@@ -60,17 +60,13 @@ public partial class InventorySimulator
         if (player != null)
             item.AccountID = (uint)player.SteamID;
         item.CustomName = weaponItem.Nametag;
-        // item.NetworkedDynamicAttributes.Attributes.RemoveAll();
-        // item.NetworkedDynamicAttributes.SetOrAddAttribute(
-        //     "set item texture prefab",
-        //     weaponItem.Paint
-        // );
-        // item.NetworkedDynamicAttributes.SetOrAddAttribute("set item texture seed", weaponItem.Seed);
-        // item.NetworkedDynamicAttributes.SetOrAddAttribute("set item texture wear", weaponItem.Wear);
-        item.AttributeList.Attributes.RemoveAll();
-        item.AttributeList.SetOrAddAttribute("set item texture prefab", weaponItem.Paint);
-        item.AttributeList.SetOrAddAttribute("set item texture seed", weaponItem.Seed);
-        item.AttributeList.SetOrAddAttribute(
+        item.NetworkedDynamicAttributes.Attributes.RemoveAll();
+        item.NetworkedDynamicAttributes.SetOrAddAttribute(
+            "set item texture prefab",
+            weaponItem.Paint
+        );
+        item.NetworkedDynamicAttributes.SetOrAddAttribute("set item texture seed", weaponItem.Seed);
+        item.NetworkedDynamicAttributes.SetOrAddAttribute(
             "set item texture wear",
             weaponItem.WearOverride ?? weaponItem.Wear
         );
@@ -82,11 +78,6 @@ public partial class InventorySimulator
                 UnsafeHelpers.ViewAs<int, float>(weaponItem.Stattrak)
             );
             item.NetworkedDynamicAttributes.SetOrAddAttribute("kill eater score type", 0);
-            item.AttributeList.SetOrAddAttribute(
-                "kill eater",
-                UnsafeHelpers.ViewAs<int, float>(weaponItem.Stattrak)
-            );
-            item.AttributeList.SetOrAddAttribute("kill eater score type", 0);
         }
         if (!isKnife)
         {
@@ -133,42 +124,6 @@ public partial class InventorySimulator
     public bool IsCustomWeaponItemID(CBasePlayerWeapon weapon)
     {
         return weapon.AttributeManager.Item.ItemID >= MinimumCustomItemID;
-    }
-
-    public void SetPlayerModel(
-        IPlayer player,
-        string model,
-        bool voFallback = true,
-        string voPrefix = "",
-        bool voFemale = false,
-        List<uint>? patches = null
-    )
-    {
-        Core.Scheduler.NextTick(() =>
-        {
-            if (!player.IsValid)
-                return;
-            var pawn = player.PlayerPawn;
-            if (pawn == null || !pawn.IsValid)
-                return;
-            if (patches != null && patches.Count == 5)
-                for (
-                    var index = 0;
-                    index < patches.Count && index < pawn.PlayerPatchEconIndices.ElementCount;
-                    index++
-                )
-                    pawn.PlayerPatchEconIndices[index] = patches[index];
-            pawn.SetModel(model);
-        });
-    }
-
-    public IPlayer? GetPlayerFromItemServices(CCSPlayer_ItemServices itemServices)
-    {
-        var pawn = itemServices.Pawn;
-        return
-            pawn != null && pawn.IsValid && pawn.Controller.IsValid && pawn.Controller.Value != null
-            ? Core.PlayerManager.GetPlayerFromSteamID(pawn.Controller.Value.SteamID)
-            : null;
     }
 
     public CCSPlayerController? GetControllerFromItemServices(CCSPlayer_ItemServices itemServices)
