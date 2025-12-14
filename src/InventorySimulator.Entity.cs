@@ -142,15 +142,6 @@ public partial class InventorySimulator
         return weapon.AttributeManager.Item.ItemID >= MinimumCustomItemID;
     }
 
-    public CCSPlayerController? GetControllerFromItemServices(CCSPlayer_ItemServices itemServices)
-    {
-        var pawn = itemServices.Pawn;
-        return
-            pawn != null && pawn.IsValid && pawn.Controller.IsValid && pawn.Controller.Value != null
-            ? pawn.Controller.Value.As<CCSPlayerController>()
-            : null;
-    }
-
     public bool IsPlayerUseCmdBusy(IPlayer player)
     {
         if (player.PlayerPawn?.IsBuyMenuOpen == true)

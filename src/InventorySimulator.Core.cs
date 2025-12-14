@@ -170,7 +170,13 @@ public partial class InventorySimulator
         }
     }
 
-    public void GiveOnLoadPlayerInventory(IPlayer player) { }
+    public void GiveOnLoadPlayerInventory(IPlayer player)
+    {
+        var inventory = player.Controller.InventoryServices?.GetInventory();
+        if (inventory == null || !inventory.IsValid)
+            return;
+        Natives.CCSPlayerInventory_Reset.Call(inventory.Address);
+    }
 
     public void GiveOnRefreshPlayerInventory(IPlayer player, PlayerInventory oldInventory)
     {

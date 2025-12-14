@@ -45,6 +45,8 @@ public static class Natives
 
     public delegate nint CEconItemView_OperatorEqualsDelegate(nint thisPtr, nint other);
 
+    public delegate nint CCSPlayerInventory_ResetDelegate(nint thisPtr);
+
     private static readonly Lazy<
         IUnmanagedFunction<CCSPlayer_ItemServices_GiveNamedItemDelegate>
     > _lazyGiveNamedItem = new(() =>
@@ -87,6 +89,12 @@ public static class Natives
         FromSignature<CEconItemView_OperatorEqualsDelegate>("CEconItemView::operator=")
     );
 
+    private static readonly Lazy<
+        IUnmanagedFunction<CCSPlayerInventory_ResetDelegate>
+    > _lazyPlayerInventoryReset = new(() =>
+        FromSignature<CCSPlayerInventory_ResetDelegate>("CCSPlayerInventory::Reset")
+    );
+
     public static IUnmanagedFunction<CCSPlayer_ItemServices_GiveNamedItemDelegate> CCSPlayer_ItemServices_GiveNamedItem =>
         _lazyGiveNamedItem.Value;
 
@@ -104,6 +112,9 @@ public static class Natives
 
     public static IUnmanagedFunction<CEconItemView_OperatorEqualsDelegate> CEconItemView_OperatorEquals =>
         _lazyEconItemViewOperatorEquals.Value;
+
+    public static IUnmanagedFunction<CCSPlayerInventory_ResetDelegate> CCSPlayerInventory_Reset =>
+        _lazyPlayerInventoryReset.Value;
 
     public static int CCSPlayerInventory_m_pSOCache =>
         new Lazy<int>(() => FromOffset("CCSPlayerInventory::m_pSOCache")).Value;
@@ -176,5 +187,26 @@ public static class CCSPlayerPawnExtensions
     public static bool IsAbleToApplySpray(this CCSPlayerPawn pawn, IntPtr ptr = 0)
     {
         return Natives.CCSPlayerPawn_IsAbleToApplySpray.Call(pawn.Address, ptr, 0, 0) == nint.Zero;
+    }
+}
+
+public static class CCSPlayerController_InventoryServicesExtensions
+{
+    public static CCSPlayerController? GetController(this CCSPlayer_ItemServices itemServices)
+    {
+        var pawn = itemServices.Pawn;
+        return
+            pawn != null && pawn.IsValid && pawn.Controller.IsValid && pawn.Controller.Value != null
+            ? pawn.Controller.Value.As<CCSPlayerController>()
+            : null;
+    }
+
+    public static CCSPlayerInventory GetInventory(
+        this CCSPlayerController_InventoryServices itemServices
+    )
+    {
+        return new CCSPlayerInventory(
+            itemServices.Address + Natives.CCSPlayerController_InventoryServices_m_pInventory
+        );
     }
 }

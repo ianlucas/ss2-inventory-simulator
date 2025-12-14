@@ -5,10 +5,7 @@
 
 using System.Runtime.InteropServices;
 using CS2Lib;
-using CS2Lib.SwiftlyCS2.Core;
-using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.SchemaDefinitions;
-using SwiftlyS2.Shared.SteamAPI;
 
 namespace InventorySimulator;
 
@@ -53,13 +50,10 @@ public partial class InventorySimulator
             )
             {
                 var itemServices = Core.Memory.ToSchemaClass<CCSPlayer_ItemServices>(thisPtr);
-                var controller = GetControllerFromItemServices(itemServices);
+                var controller = itemServices.GetController();
                 if (controller?.SteamID != 0 && controller?.InventoryServices?.IsValid == true)
                 {
-                    var inventory = new CCSPlayerInventory(
-                        controller.InventoryServices.Address
-                            + Natives.CCSPlayerController_InventoryServices_m_pInventory
-                    );
+                    var inventory = controller.InventoryServices.GetInventory();
                     if (inventory.IsValid)
                         pScriptItem = Natives.CCSPlayerInventory_GetItemInLoadout.Call(
                             inventory.Address,
