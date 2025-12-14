@@ -111,20 +111,14 @@ public partial class InventorySimulator
 
     public void GivePlayerWeaponSkin(IPlayer player, CBasePlayerWeapon weapon)
     {
-        if (IsCustomWeaponItemID(weapon))
-            return;
         var isKnife = CS2Items.IsMeleeDesignerName(weapon.DesignerName);
-        var entityDef = weapon.AttributeManager.Item.ItemDefinitionIndex;
+        if (!isKnife)
+            return;
         var inventory = GetPlayerInventory(player);
-        var fallback = IsFallbackTeam.Value;
-        var item = isKnife
-            ? inventory.GetKnife(player.Controller.TeamNum, fallback)
-            : inventory.GetWeapon(player.Controller.TeamNum, entityDef, fallback);
-        if (item != null)
-        {
-            item.WearOverride ??= inventory.GetWeaponEconItemWear(item);
-            ApplyWeaponAttributesFromItem(weapon.AttributeManager.Item, item, weapon, player);
-        }
+        var item = inventory.GetKnife(player.Controller.TeamNum, IsFallbackTeam.Value);
+        if (item != null && weapon.AttributeManager.Item.ItemDefinitionIndex != item.Def)
+            // Thanks to xstage and stefanx111
+            weapon.AcceptInput("ChangeSubclass", value: item.Def.ToString());
     }
 
     public void GivePlayerWeaponStatTrakIncrement(
@@ -296,27 +290,27 @@ public partial class InventorySimulator
 
     public void GiveOnPlayerSpawn(IPlayer player)
     {
-        var inventory = GetPlayerInventory(player);
-        GivePlayerPin(player, inventory);
-        GivePlayerAgent(player, inventory);
-        GivePlayerGloves(player, inventory);
+        // var inventory = GetPlayerInventory(player);
+        // GivePlayerPin(player, inventory);
+        // GivePlayerAgent(player, inventory);
+        // GivePlayerGloves(player, inventory);
     }
 
     public void GiveOnLoadPlayerInventory(IPlayer player)
     {
-        GiveTeamPreviewItems("team_select", player);
-        GiveTeamPreviewItems("team_intro", player);
+        // GiveTeamPreviewItems("team_select", player);
+        // GiveTeamPreviewItems("team_intro", player);
     }
 
     public void GiveOnRefreshPlayerInventory(IPlayer player, PlayerInventory oldInventory)
     {
-        var inventory = GetPlayerInventory(player);
-        GivePlayerPin(player, inventory);
-        if (IsWsImmediately.Value)
-        {
-            GivePlayerGloves(player, inventory);
-            GivePlayerCurrentWeapons(player, inventory, oldInventory);
-        }
+        // var inventory = GetPlayerInventory(player);
+        // GivePlayerPin(player, inventory);
+        // if (IsWsImmediately.Value)
+        // {
+        //     GivePlayerGloves(player, inventory);
+        //     GivePlayerCurrentWeapons(player, inventory, oldInventory);
+        // }
     }
 
     public void GivePlayerGraffiti(IPlayer player, CPlayerSprayDecal sprayDecal)
@@ -458,12 +452,10 @@ public partial class InventorySimulator
     public void OnIsRequireInventoryChanged()
     {
         if (IsRequireInventory.Value)
-            OnActivatePlayerHookGuid = GameFunctions.CServerSideClientBase_ActivatePlayer.AddHook(
+            OnActivatePlayerHookGuid = Natives.CServerSideClientBase_ActivatePlayer.AddHook(
                 OnActivatePlayer
             );
         else if (OnActivatePlayerHookGuid != null)
-            GameFunctions.CServerSideClientBase_ActivatePlayer.RemoveHook(
-                OnActivatePlayerHookGuid.Value
-            );
+            Natives.CServerSideClientBase_ActivatePlayer.RemoveHook(OnActivatePlayerHookGuid.Value);
     }
 }

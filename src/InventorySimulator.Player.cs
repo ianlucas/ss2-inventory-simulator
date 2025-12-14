@@ -91,4 +91,11 @@ public partial class InventorySimulator
             ? inventory
             : EmptyInventory;
     }
+
+    public PlayerInventory GetPlayerInventoryBySteamID(ulong steamID)
+    {
+        return PlayerInventoryManager.TryGetValue(steamID, out var inventory)
+            ? inventory
+            : EmptyInventory;
+    }
 }

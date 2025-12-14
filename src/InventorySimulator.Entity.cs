@@ -60,17 +60,20 @@ public partial class InventorySimulator
         if (player != null)
             item.AccountID = (uint)player.SteamID;
         item.CustomName = weaponItem.Nametag;
-        item.NetworkedDynamicAttributes.Attributes.RemoveAll();
-        item.NetworkedDynamicAttributes.SetOrAddAttribute(
-            "set item texture prefab",
-            weaponItem.Paint
-        );
-        item.NetworkedDynamicAttributes.SetOrAddAttribute("set item texture seed", weaponItem.Seed);
-        item.NetworkedDynamicAttributes.SetOrAddAttribute("set item texture wear", weaponItem.Wear);
+        // item.NetworkedDynamicAttributes.Attributes.RemoveAll();
+        // item.NetworkedDynamicAttributes.SetOrAddAttribute(
+        //     "set item texture prefab",
+        //     weaponItem.Paint
+        // );
+        // item.NetworkedDynamicAttributes.SetOrAddAttribute("set item texture seed", weaponItem.Seed);
+        // item.NetworkedDynamicAttributes.SetOrAddAttribute("set item texture wear", weaponItem.Wear);
         item.AttributeList.Attributes.RemoveAll();
         item.AttributeList.SetOrAddAttribute("set item texture prefab", weaponItem.Paint);
         item.AttributeList.SetOrAddAttribute("set item texture seed", weaponItem.Seed);
-        item.AttributeList.SetOrAddAttribute("set item texture wear", weaponItem.Wear);
+        item.AttributeList.SetOrAddAttribute(
+            "set item texture wear",
+            weaponItem.WearOverride ?? weaponItem.Wear
+        );
         if (weaponItem.Stattrak >= 0)
         {
             weapon?.FallbackStatTrak = weaponItem.Stattrak;
@@ -165,6 +168,15 @@ public partial class InventorySimulator
         return
             pawn != null && pawn.IsValid && pawn.Controller.IsValid && pawn.Controller.Value != null
             ? Core.PlayerManager.GetPlayerFromSteamID(pawn.Controller.Value.SteamID)
+            : null;
+    }
+
+    public CCSPlayerController? GetControllerFromItemServices(CCSPlayer_ItemServices itemServices)
+    {
+        var pawn = itemServices.Pawn;
+        return
+            pawn != null && pawn.IsValid && pawn.Controller.IsValid && pawn.Controller.Value != null
+            ? pawn.Controller.Value.As<CCSPlayerController>()
             : null;
     }
 

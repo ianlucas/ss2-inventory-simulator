@@ -24,7 +24,7 @@ public partial class InventorySimulator(ISwiftlyCore core) : BasePlugin(core)
 
     public override void Load(bool hotReload)
     {
-        GameFunctions.Initialize(Core);
+        Natives.Initialize(Core);
 
         Core.Event.OnTick += OnTick;
         Core.Event.OnEntityCreated += OnEntityCreated;
@@ -37,10 +37,11 @@ public partial class InventorySimulator(ISwiftlyCore core) : BasePlugin(core)
         Core.GameEvent.HookPre<EventPlayerDeath>(OnPlayerDeathPre);
         Core.GameEvent.HookPre<EventRoundMvp>(OnRoundMvpPre);
         Core.GameEvent.HookPost<EventPlayerDisconnect>(OnPlayerDisconnect);
-        GameFunctions.CCSPlayer_ItemServices_GiveNamedItem.AddHook(OnGiveNamedItem);
-        GameFunctions.CCSPlayerController_UpdateTeamSelectionPreview.AddHook(
+        Natives.CCSPlayer_ItemServices_GiveNamedItem.AddHook(OnGiveNamedItem);
+        Natives.CCSPlayerController_UpdateTeamSelectionPreview.AddHook(
             OnUpdateTeamSelectionPreview
         );
+        Natives.CCSPlayerInventory_GetItemInLoadout.AddHook(OnGetItemInLoadout);
         OnFileChanged();
         OnIsRequireInventoryChanged();
     }

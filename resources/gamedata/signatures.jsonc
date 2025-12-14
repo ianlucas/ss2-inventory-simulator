@@ -18,5 +18,10 @@
     "lib": "engine2",
     "windows": "40 53 48 83 EC ? 48 89 6C 24 ? 48 8B D9 48 89 74 24 ? 48 89 7C 24",
     "linux": "55 48 89 E5 41 56 41 55 41 54 53 48 89 FB 48 83 EC ? E8"
+  },
+  "CCSPlayerInventory::GetItemInLoadout": {
+    "lib": "server",
+    "windows": "",
+    "linux": "55 48 89 E5 41 57 41 56 41 55 41 54 53 48 83 EC ? 83 FA"
   }
 }
