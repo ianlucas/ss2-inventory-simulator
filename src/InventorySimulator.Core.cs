@@ -10,6 +10,7 @@ using SwiftlyS2.Shared.Events;
 using SwiftlyS2.Shared.Natives;
 using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.SchemaDefinitions;
+using SwiftlyS2.Shared.SteamAPI;
 
 namespace InventorySimulator;
 
@@ -21,40 +22,32 @@ public partial class InventorySimulator
         string weaponItemId
     )
     {
-        try
-        {
-            var weapon = player.PlayerPawn?.WeaponServices?.ActiveWeapon.Value;
-            if (
-                weapon == null
-                || !IsCustomWeaponItemID(weapon)
-                || weapon.FallbackStatTrak < 0
-                || weapon.AttributeManager.Item.AccountID != (uint)player.SteamID
-                || weapon.AttributeManager.Item.ItemID != ulong.Parse(weaponItemId)
-                || weapon.FallbackStatTrak >= 999_999
-            )
-                return;
-            var isKnife = CS2Items.IsMeleeDesignerName(designerName);
-            var newValue = weapon.FallbackStatTrak + 1;
-            var def = weapon.AttributeManager.Item.ItemDefinitionIndex;
-            weapon.AttributeManager.Item.NetworkedDynamicAttributes.SetOrAddAttribute(
-                "kill eater",
-                UnsafeHelpers.ViewAs<int, float>(newValue)
+        var weapon = player.PlayerPawn?.WeaponServices?.ActiveWeapon.Value;
+        if (
+            weapon == null
+            || !IsCustomWeaponItemID(weapon)
+            || weapon.AttributeManager.Item.AccountID
+                != new CSteamID(player.SteamID).GetAccountID().m_AccountID
+            || weapon.AttributeManager.Item.ItemID != ulong.Parse(weaponItemId)
+        )
+            return;
+        var inventory = GetPlayerInventory(player);
+        var isFallbackTeam = IsFallbackTeam.Value;
+        var item = CS2Items.IsMeleeDesignerName(designerName)
+            ? inventory.GetKnife(player.Controller.TeamNum, isFallbackTeam)
+            : inventory.GetWeapon(
+                player.Controller.TeamNum,
+                weapon.AttributeManager.Item.ItemDefinitionIndex,
+                isFallbackTeam
             );
-            var inventory = GetPlayerInventory(player);
-            var fallback = IsFallbackTeam.Value;
-            var item = isKnife
-                ? inventory.GetKnife(player.Controller.TeamNum, fallback)
-                : inventory.GetWeapon(player.Controller.TeamNum, def, fallback);
-            if (item != null)
-            {
-                item.Stattrak = newValue;
-                SendStatTrakIncrement(player.SteamID, item.Uid);
-            }
-        }
-        catch
-        {
-            // Ignore any errors.
-        }
+        if (item == null)
+            return;
+        item.Stattrak += 1;
+        weapon.AttributeManager.Item.NetworkedDynamicAttributes.SetOrAddAttribute(
+            "kill eater",
+            UnsafeHelpers.ViewAs<int, float>(item.Stattrak)
+        );
+        SendStatTrakIncrement(player.SteamID, item.Uid);
     }
 
     public void GivePlayerMusicKitStatTrakIncrement(IPlayer player)
@@ -176,6 +169,8 @@ public partial class InventorySimulator
                 );
         }
     }
+
+    public void GiveOnLoadPlayerInventory(IPlayer player) { }
 
     public void GiveOnRefreshPlayerInventory(IPlayer player, PlayerInventory oldInventory)
     {

@@ -8,6 +8,7 @@ using CS2Lib;
 using CS2Lib.SwiftlyCS2.Core;
 using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.SchemaDefinitions;
+using SwiftlyS2.Shared.SteamAPI;
 
 namespace InventorySimulator;
 
@@ -93,6 +94,7 @@ public partial class InventorySimulator
                 var item = Core.Memory.ToSchemaClass<CEconItemView>(ret);
                 if (item.IsValid)
                 {
+                    ;
                     // Console.WriteLine(
                     //     $"[GetItemInLoadout^] inventory={nativeInventory.Address} team={(Team)team} slot={(loadout_slot_t)slot} def={item.ItemDefinitionIndex}"
                     // );
@@ -101,7 +103,7 @@ public partial class InventorySimulator
                     var inventory = GetPlayerInventoryBySteamID(
                         nativeInventory.SOCache.Owner.SteamID
                     );
-                    item.AccountID = (uint)steamId;
+                    item.AccountID = new CSteamID(steamId).GetAccountID().m_AccountID;
                     if (
                         (loadout_slot_t)slot >= loadout_slot_t.LOADOUT_SLOT_MELEE
                         && (loadout_slot_t)slot <= loadout_slot_t.LOADOUT_SLOT_EQUIPMENT5
@@ -141,10 +143,6 @@ public partial class InventorySimulator
                             var patch = agentItem.Patches[i];
                             if (patch != 0)
                             {
-                                // item.NetworkedDynamicAttributes.SetOrAddAttribute(
-                                //     $"sticker slot {i} id",
-                                //     UnsafeHelpers.ViewAs<uint, float>(patch)
-                                // );
                                 item.AttributeList.SetOrAddAttribute(
                                     $"sticker slot {i} id",
                                     UnsafeHelpers.ViewAs<uint, float>(patch)
