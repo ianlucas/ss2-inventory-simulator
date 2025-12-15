@@ -40,14 +40,6 @@ public partial class InventorySimulator
     public void AddPlayerInventory(ulong steamId, PlayerInventory inventory)
     {
         PlayerInventoryManager[steamId] = inventory;
-        Core.Scheduler.NextTick(() =>
-        {
-            var player = Core.PlayerManager.GetPlayerFromSteamID(steamId);
-            if (inventory.MusicKit != null || inventory.Graffiti != null)
-                PlayerOnTickInventoryManager[steamId] = (player, inventory);
-            else
-                PlayerOnTickInventoryManager.Remove(steamId, out _);
-        });
     }
 
     public void ClearInventoryManager()
@@ -68,23 +60,26 @@ public partial class InventorySimulator
             PlayerInventoryManager.Remove(steamId, out _);
             PlayerCooldownManager.Remove(steamId, out _);
             PlayerSprayCooldownManager.Remove(steamId, out _);
-            PlayerOnTickInventoryManager.Remove(steamId, out _);
         }
-        if (PlayerOnTickInventoryManager.TryGetValue(steamId, out var tuple))
-            PlayerOnTickInventoryManager[steamId] = (null, tuple.Item2);
         var prefix = $"{steamId}_";
         var keysToRemove = CreatedEconItemViewPointers
             .Keys.Where(key => key.StartsWith(prefix))
             .ToList();
         foreach (var key in keysToRemove)
+        {
             if (CreatedEconItemViewPointers.TryRemove(key, out var ptr))
                 Natives.FreeMemory(ptr);
+        }
     }
 
     public void ClearPlayerUseCmd(ulong steamId)
     {
-        PlayerUseCmdManager.Remove(steamId, out var _);
         PlayerUseCmdBlockManager.Remove(steamId, out var _);
+        if (PlayerUseCmdManager.Remove(steamId, out var timer))
+        {
+            timer.Cancel();
+            timer.Dispose();
+        }
     }
 
     public void ClearPlayerInventoryPostFetchHandler(ulong steamId)

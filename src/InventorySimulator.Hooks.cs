@@ -93,8 +93,12 @@ public partial class InventorySimulator
             if (!itemWrapper.HasItem)
                 return ret;
             var key = $"{steamId}_{team}_{slot}";
-            if (CreatedEconItemViewPointers.TryRemove(key, out var oldPtr))
-                Core.Scheduler.Delay(64, () => Natives.FreeMemory(oldPtr));
+            if (CreatedEconItemViewPointers.TryGetValue(key, out var existingPtr))
+            {
+                var existingItem = Core.Memory.ToSchemaClass<CEconItemView>(existingPtr);
+                ApplyAttributesFromWrapper(existingItem, itemWrapper, inventory, steamId);
+                return existingPtr;
+            }
             var newItemPtr = Natives.CreateEconItemView(copyFrom: ret);
             var item = Core.Memory.ToSchemaClass<CEconItemView>(newItemPtr);
             ApplyAttributesFromWrapper(item, itemWrapper, inventory, steamId);

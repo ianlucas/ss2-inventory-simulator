@@ -173,9 +173,8 @@ public partial class InventorySimulator
     public void GiveOnLoadPlayerInventory(IPlayer player)
     {
         var inventory = player.Controller.InventoryServices?.GetInventory();
-        if (inventory == null || !inventory.IsValid)
-            return;
-        Natives.CCSPlayerInventory_Reset.Call(inventory.Address);
+        if (inventory != null && inventory.IsValid)
+            Natives.CCSPlayerInventory_Reset.Call(inventory.Address);
     }
 
     public void GiveOnRefreshPlayerInventory(IPlayer player, PlayerInventory oldInventory)
@@ -248,7 +247,10 @@ public partial class InventorySimulator
             if (IsPlayerUseCmdBusy(player))
                 PlayerUseCmdBlockManager[player.SteamID] = true;
             if (PlayerUseCmdManager.TryGetValue(player.SteamID, out var timer))
+            {
                 timer.Cancel();
+                timer.Dispose();
+            }
             PlayerUseCmdManager[player.SteamID] = Core.Scheduler.DelayBySeconds(
                 0.1f,
                 () =>

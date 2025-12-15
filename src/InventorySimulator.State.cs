@@ -15,10 +15,6 @@ public partial class InventorySimulator
     public readonly ConcurrentDictionary<ulong, bool> LoadedPlayerInventory = [];
     public readonly ConcurrentDictionary<ulong, long> PlayerCooldownManager = [];
     public readonly ConcurrentDictionary<ulong, long> PlayerSprayCooldownManager = [];
-    public readonly ConcurrentDictionary<
-        ulong,
-        (IPlayer?, PlayerInventory)
-    > PlayerOnTickInventoryManager = [];
     public readonly ConcurrentDictionary<ulong, PlayerInventory> PlayerInventoryManager = [];
     public readonly ConcurrentDictionary<ulong, CancellationTokenSource> PlayerUseCmdManager = [];
     public readonly ConcurrentDictionary<ulong, bool> PlayerUseCmdBlockManager = [];

@@ -29,8 +29,6 @@ public partial class InventorySimulator
 
     public void OnPlayerConnect(IPlayer player)
     {
-        if (PlayerOnTickInventoryManager.TryGetValue(player.SteamID, out var tuple))
-            PlayerOnTickInventoryManager[player.SteamID] = (player, tuple.Item2);
         RefreshPlayerInventory(player);
     }
 
@@ -62,9 +60,10 @@ public partial class InventorySimulator
         var player = @event.UserIdPlayer;
         if (player != null && !player.IsFakeClient)
         {
-            ClearPlayerUseCmd(player.SteamID);
-            ClearPlayerInventoryPostFetchHandler(player.SteamID);
-            ClearPlayerInventory(player.SteamID);
+            var steamId = player.SteamID;
+            ClearPlayerUseCmd(steamId);
+            ClearPlayerInventoryPostFetchHandler(steamId);
+            ClearPlayerInventory(steamId);
             ClearInventoryManager();
         }
         return HookResult.Continue;
