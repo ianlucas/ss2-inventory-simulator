@@ -16,9 +16,6 @@ invsim_ws_enabled false
 invsim_ws_url_print_format "{Host}"
     URL format string displayed when using the !ws command.
 
-invsim_ws_gloves_fix false
-    Apply the glove change fix when refreshing inventory.
-
 invsim_ws_immediately false
     Apply skin changes immediately without requiring a respawn.
 

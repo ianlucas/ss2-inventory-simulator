@@ -6,6 +6,7 @@
 using System.Text.Json.Serialization;
 using CS2Lib.SwiftlyCS2.Core;
 using SwiftlyS2.Shared.Players;
+using SwiftlyS2.Shared.SchemaDefinitions;
 
 namespace InventorySimulator;
 
@@ -77,6 +78,37 @@ public class BaseEconItem
     public float Wear { get; set; }
 
     public float? WearOverride;
+
+    public override int GetHashCode()
+    {
+        return base.GetHashCode();
+    }
+
+    public override bool Equals(object? obj)
+    {
+        if (obj is not BaseEconItem other)
+            return false;
+
+        return Def == other.Def
+            && Paint == other.Paint
+            && Seed == other.Seed
+            && Wear == other.Wear
+            && WearOverride == other.WearOverride;
+    }
+
+    public static bool operator ==(BaseEconItem? left, BaseEconItem? right)
+    {
+        if (ReferenceEquals(left, right))
+            return true;
+        if (left is null || right is null)
+            return false;
+        return left.Equals(right);
+    }
+
+    public static bool operator !=(BaseEconItem? left, BaseEconItem? right)
+    {
+        return !(left == right);
+    }
 }
 
 public class WeaponEconItem : BaseEconItem
@@ -137,19 +169,51 @@ public class AgentItem
     public ushort? Def { get; set; }
 
     [JsonPropertyName("model")]
-    public required string Model { get; set; }
+    public string Model { get; set; } = "";
 
     [JsonPropertyName("patches")]
-    public required List<uint> Patches { get; set; }
+    public List<uint> Patches { get; set; } = [];
 
     [JsonPropertyName("vofallback")]
-    public required bool VoFallback { get; set; }
+    public bool VoFallback { get; set; } = false;
 
     [JsonPropertyName("vofemale")]
-    public required bool VoFemale { get; set; }
+    public bool VoFemale { get; set; } = false;
 
     [JsonPropertyName("voprefix")]
-    public required string VoPrefix { get; set; }
+    public string VoPrefix { get; set; } = "";
+
+    public override int GetHashCode()
+    {
+        return base.GetHashCode();
+    }
+
+    public override bool Equals(object? obj)
+    {
+        if (obj is not AgentItem other)
+            return false;
+
+        return Def == other.Def
+            && Model == other.Model
+            && Patches.SequenceEqual(other.Patches)
+            && VoFallback == other.VoFallback
+            && VoFemale == other.VoFemale
+            && VoPrefix == other.VoPrefix;
+    }
+
+    public static bool operator ==(AgentItem? left, AgentItem? right)
+    {
+        if (ReferenceEquals(left, right))
+            return true;
+        if (left is null || right is null)
+            return false;
+        return left.Equals(right);
+    }
+
+    public static bool operator !=(AgentItem? left, AgentItem? right)
+    {
+        return !(left == right);
+    }
 }
 
 public class MusicKitItem
@@ -171,6 +235,36 @@ public class GraffitiItem
 
     [JsonPropertyName("tint")]
     public required int Tint { get; set; }
+}
+
+public class InventoryItemWrapper
+{
+    public WeaponEconItem? WeaponItem { get; set; }
+    public AgentItem? AgentItem { get; set; }
+    public BaseEconItem? GloveItem { get; set; }
+    public uint? PinItem { get; set; }
+    public MusicKitItem? MusicKitItem { get; set; }
+
+    public bool HasItem =>
+        WeaponItem != null
+        || AgentItem != null
+        || GloveItem != null
+        || PinItem != null
+        || MusicKitItem != null;
+
+    public static InventoryItemWrapper FromWeapon(WeaponEconItem item) =>
+        new() { WeaponItem = item };
+
+    public static InventoryItemWrapper FromAgent(AgentItem item) => new() { AgentItem = item };
+
+    public static InventoryItemWrapper FromGlove(BaseEconItem item) => new() { GloveItem = item };
+
+    public static InventoryItemWrapper FromPin(uint item) => new() { PinItem = item };
+
+    public static InventoryItemWrapper FromMusicKit(MusicKitItem item) =>
+        new() { MusicKitItem = item };
+
+    public static InventoryItemWrapper Empty() => new();
 }
 
 [method: JsonConstructor]
@@ -282,5 +376,59 @@ public class PlayerInventory(
             }
             wear += 0.001f;
         }
+    }
+
+    public InventoryItemWrapper GetItemForSlot(
+        loadout_slot_t slot,
+        byte team,
+        ushort? def,
+        bool fallback,
+        int minModels
+    )
+    {
+        if (
+            slot >= loadout_slot_t.LOADOUT_SLOT_MELEE
+            && slot <= loadout_slot_t.LOADOUT_SLOT_EQUIPMENT5
+        )
+        {
+            var isKnife = slot == loadout_slot_t.LOADOUT_SLOT_MELEE;
+            var weaponItem =
+                isKnife ? GetKnife(team, fallback)
+                : def.HasValue ? GetWeapon(team, def.Value, fallback)
+                : null;
+            return weaponItem != null
+                ? InventoryItemWrapper.FromWeapon(weaponItem)
+                : InventoryItemWrapper.Empty();
+        }
+        if (slot == loadout_slot_t.LOADOUT_SLOT_CLOTHING_CUSTOMPLAYER)
+        {
+            if (minModels > 0)
+                return team == (byte)Team.T
+                    ? InventoryItemWrapper.FromAgent(new AgentItem { Def = 5036 })
+                    : InventoryItemWrapper.FromAgent(new AgentItem { Def = 5037 });
+            if (Agents.TryGetValue(team, out var agentItem) && agentItem.Def != null)
+                return InventoryItemWrapper.FromAgent(agentItem);
+            return InventoryItemWrapper.Empty();
+        }
+        if (slot == loadout_slot_t.LOADOUT_SLOT_CLOTHING_HANDS)
+        {
+            var gloveItem = GetGloves(team, fallback);
+            return gloveItem != null
+                ? InventoryItemWrapper.FromGlove(gloveItem)
+                : InventoryItemWrapper.Empty();
+        }
+        if (slot == loadout_slot_t.LOADOUT_SLOT_FLAIR0)
+        {
+            return Pin.HasValue
+                ? InventoryItemWrapper.FromPin(Pin.Value)
+                : InventoryItemWrapper.Empty();
+        }
+        if (slot == loadout_slot_t.LOADOUT_SLOT_MUSICKIT)
+        {
+            return MusicKit != null
+                ? InventoryItemWrapper.FromMusicKit(MusicKit)
+                : InventoryItemWrapper.Empty();
+        }
+        return InventoryItemWrapper.Empty();
     }
 }

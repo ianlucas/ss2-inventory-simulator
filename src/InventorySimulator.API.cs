@@ -122,7 +122,7 @@ public partial class InventorySimulator
         if (!force)
         {
             await FetchPlayerInventory(player.SteamID);
-            Core.Scheduler.NextTick(() =>
+            Core.Scheduler.NextWorldUpdate(() =>
             {
                 if (player.IsValid)
                     GiveOnLoadPlayerInventory(player);
@@ -131,7 +131,7 @@ public partial class InventorySimulator
         }
         var oldInventory = GetPlayerInventory(player);
         await FetchPlayerInventory(player.SteamID, true);
-        Core.Scheduler.NextTick(() =>
+        Core.Scheduler.NextWorldUpdate(() =>
         {
             if (player.IsValid)
             {
@@ -172,7 +172,7 @@ public partial class InventorySimulator
             new { apiKey = ApiKey.Value, userId = userId.ToString() }
         );
         AuthenticatingPlayer.TryRemove(userId, out var _);
-        Core.Scheduler.NextTick(() =>
+        Core.Scheduler.NextWorldUpdate(() =>
         {
             var player = Core.PlayerManager.GetPlayerFromSteamID(userId);
             if (response == null)

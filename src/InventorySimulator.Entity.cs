@@ -3,169 +3,143 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-using CS2Lib;
 using CS2Lib.SwiftlyCS2.Core;
 using CS2Lib.SwiftlyCS2.Extensions;
 using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.SchemaDefinitions;
+using SwiftlyS2.Shared.SteamAPI;
 
 namespace InventorySimulator;
 
 public partial class InventorySimulator
 {
-    public void ApplyGloveAttributesFromItem(CEconItemView glove, BaseEconItem item)
+    public void ApplyWeaponAttributesFromItem(CEconItemView item, WeaponEconItem weaponItem)
     {
-        glove.Initialized = true;
-        glove.ItemDefinitionIndex = item.Def;
-        UpdateEconItemID(glove);
-        glove.NetworkedDynamicAttributes.Attributes.RemoveAll();
-        glove.NetworkedDynamicAttributes.SetOrAddAttribute("set item texture prefab", item.Paint);
-        glove.NetworkedDynamicAttributes.SetOrAddAttribute("set item texture seed", item.Seed);
-        glove.NetworkedDynamicAttributes.SetOrAddAttribute("set item texture wear", item.Wear);
-        glove.AttributeList.Attributes.RemoveAll();
-        glove.AttributeList.SetOrAddAttribute("set item texture prefab", item.Paint);
-        glove.AttributeList.SetOrAddAttribute("set item texture seed", item.Seed);
-        glove.AttributeList.SetOrAddAttribute("set item texture wear", item.Wear);
-    }
-
-    public void ApplyWeaponAttributesFromItem(
-        CEconItemView item,
-        WeaponEconItem weaponItem,
-        CBasePlayerWeapon? weapon = null,
-        IPlayer? player = null
-    )
-    {
-        var designerName = weapon?.DesignerName;
-        var isKnife =
-            designerName != null ? CS2Items.IsMeleeDesignerName(designerName) : item.IsMelee();
-        var entityDef =
-            weapon?.AttributeManager.Item.ItemDefinitionIndex ?? item.ItemDefinitionIndex;
+        var isKnife = item.IsMelee();
+        var attrs = item.NetworkedDynamicAttributes;
+        var wear = weaponItem.WearOverride ?? weaponItem.Wear;
         if (isKnife)
         {
-            if (weapon != null && entityDef != weaponItem.Def)
-                // Thanks to xstage and stefanx111
-                weapon.AcceptInput("ChangeSubclass", value: weaponItem.Def.ToString());
             item.ItemDefinitionIndex = weaponItem.Def;
             item.EntityQuality = 3;
         }
         else
             item.EntityQuality = weaponItem.Stattrak >= 0 ? 9 : 4;
-        UpdateEconItemID(item);
-        if (weapon != null)
-        {
-            weapon.FallbackPaintKit = weaponItem.Paint;
-            weapon.FallbackSeed = weaponItem.Seed;
-            weapon.FallbackWear = weaponItem.WearOverride ?? weaponItem.Wear;
-        }
-        if (player != null)
-            item.AccountID = (uint)player.SteamID;
         item.CustomName = weaponItem.Nametag;
-        item.NetworkedDynamicAttributes.Attributes.RemoveAll();
-        item.NetworkedDynamicAttributes.SetOrAddAttribute(
-            "set item texture prefab",
-            weaponItem.Paint
-        );
-        item.NetworkedDynamicAttributes.SetOrAddAttribute("set item texture seed", weaponItem.Seed);
-        item.NetworkedDynamicAttributes.SetOrAddAttribute("set item texture wear", weaponItem.Wear);
-        item.AttributeList.Attributes.RemoveAll();
-        item.AttributeList.SetOrAddAttribute("set item texture prefab", weaponItem.Paint);
-        item.AttributeList.SetOrAddAttribute("set item texture seed", weaponItem.Seed);
-        item.AttributeList.SetOrAddAttribute("set item texture wear", weaponItem.Wear);
+        attrs.Attributes.RemoveAll();
+        attrs.SetOrAddAttribute("set item texture prefab", weaponItem.Paint);
+        attrs.SetOrAddAttribute("set item texture seed", weaponItem.Seed);
+        attrs.SetOrAddAttribute("set item texture wear", wear);
         if (weaponItem.Stattrak >= 0)
         {
-            weapon?.FallbackStatTrak = weaponItem.Stattrak;
-            item.NetworkedDynamicAttributes.SetOrAddAttribute(
-                "kill eater",
-                UnsafeHelpers.ViewAs<int, float>(weaponItem.Stattrak)
-            );
-            item.NetworkedDynamicAttributes.SetOrAddAttribute("kill eater score type", 0);
-            item.AttributeList.SetOrAddAttribute(
-                "kill eater",
-                UnsafeHelpers.ViewAs<int, float>(weaponItem.Stattrak)
-            );
-            item.AttributeList.SetOrAddAttribute("kill eater score type", 0);
+            var statTrak = UnsafeHelpers.ViewAs<int, float>(weaponItem.Stattrak);
+            attrs.SetOrAddAttribute("kill eater", statTrak);
+            attrs.SetOrAddAttribute("kill eater score type", 0);
         }
         if (!isKnife)
-        {
             foreach (var sticker in weaponItem.Stickers)
             {
+                var id = UnsafeHelpers.ViewAs<uint, float>(sticker.Def);
                 var slot = $"sticker slot {sticker.Slot}";
-                item.NetworkedDynamicAttributes.SetOrAddAttribute(
-                    $"{slot} id",
-                    UnsafeHelpers.ViewAs<uint, float>(sticker.Def)
-                );
-                item.NetworkedDynamicAttributes.SetOrAddAttribute($"{slot} wear", sticker.Wear);
+                attrs.SetOrAddAttribute($"{slot} id", id);
+                attrs.SetOrAddAttribute($"{slot} wear", sticker.Wear);
                 if (sticker.Rotation != null)
-                    item.NetworkedDynamicAttributes.SetOrAddAttribute(
-                        $"{slot} rotation",
-                        sticker.Rotation.Value
-                    );
+                    attrs.SetOrAddAttribute($"{slot} rotation", sticker.Rotation.Value);
                 if (sticker.X != null)
-                    item.NetworkedDynamicAttributes.SetOrAddAttribute(
-                        $"{slot} offset x",
-                        sticker.X.Value
-                    );
+                    attrs.SetOrAddAttribute($"{slot} offset x", sticker.X.Value);
                 if (sticker.Y != null)
-                    item.NetworkedDynamicAttributes.SetOrAddAttribute(
-                        $"{slot} offset y",
-                        sticker.Y.Value
-                    );
+                    attrs.SetOrAddAttribute($"{slot} offset y", sticker.Y.Value);
             }
-            if (weapon != null && player != null)
-                weapon.AcceptInput("SetBodygroup", value: $"body,{(weaponItem.Legacy ? 1 : 0)}");
+    }
+
+    public void ApplyGloveAttributesFromItem(CEconItemView glove, BaseEconItem item)
+    {
+        var netAttrs = glove.NetworkedDynamicAttributes;
+        var attrs = glove.AttributeList;
+        glove.ItemDefinitionIndex = item.Def;
+        netAttrs.Attributes.RemoveAll();
+        netAttrs.SetOrAddAttribute("set item texture prefab", item.Paint);
+        netAttrs.SetOrAddAttribute("set item texture seed", item.Seed);
+        netAttrs.SetOrAddAttribute("set item texture wear", item.Wear);
+        attrs.Attributes.RemoveAll();
+        attrs.SetOrAddAttribute("set item texture prefab", item.Paint);
+        attrs.SetOrAddAttribute("set item texture seed", item.Seed);
+        attrs.SetOrAddAttribute("set item texture wear", item.Wear);
+    }
+
+    public void ApplyAgentAttributesFromItem(CEconItemView item, AgentItem agentItem)
+    {
+        if (agentItem.Def == null)
+            return;
+        item.ItemDefinitionIndex = agentItem.Def.Value;
+        for (var i = 0; i < agentItem.Patches.Count; i++)
+        {
+            var patch = agentItem.Patches[i];
+            if (patch != 0)
+                item.AttributeList.SetOrAddAttribute(
+                    $"sticker slot {i} id",
+                    UnsafeHelpers.ViewAs<uint, float>(patch)
+                );
+        }
+    }
+
+    public void ApplyPinAttributesFromItem(CEconItemView item, uint pinDef)
+    {
+        item.ItemDefinitionIndex = (ushort)pinDef;
+    }
+
+    public void ApplyMusicKitAttributesFromItem(CEconItemView item, MusicKitItem musicKitItem)
+    {
+        item.NetworkedDynamicAttributes.Attributes.RemoveAll();
+        item.NetworkedDynamicAttributes.SetOrAddAttribute(
+            "music id",
+            UnsafeHelpers.ViewAs<int, float>(musicKitItem.Def)
+        );
+    }
+
+    public void ApplyAttributesFromWrapper(
+        CEconItemView item,
+        InventoryItemWrapper wrapper,
+        PlayerInventory inventory,
+        ulong steamId
+    )
+    {
+        UpdateEconItemID(item);
+        item.AccountID = new CSteamID(steamId).GetAccountID().m_AccountID;
+        if (wrapper.WeaponItem != null)
+        {
+            wrapper.WeaponItem.WearOverride ??= inventory.GetWeaponEconItemWear(wrapper.WeaponItem);
+            ApplyWeaponAttributesFromItem(item, wrapper.WeaponItem);
+        }
+        else if (wrapper.AgentItem != null)
+        {
+            ApplyAgentAttributesFromItem(item, wrapper.AgentItem);
+        }
+        else if (wrapper.GloveItem != null)
+        {
+            ApplyGloveAttributesFromItem(item, wrapper.GloveItem);
+        }
+        else if (wrapper.PinItem != null)
+        {
+            ApplyPinAttributesFromItem(item, wrapper.PinItem.Value);
+        }
+        else if (wrapper.MusicKitItem != null)
+        {
+            ApplyMusicKitAttributesFromItem(item, wrapper.MusicKitItem);
         }
     }
 
     public void UpdateEconItemID(CEconItemView econItemView)
     {
-        // ItemID serves as a global identifier for items. Since we're
-        // simulating it, we're using arbitrary large numbers.
         var itemId = NextItemId++;
         econItemView.ItemID = itemId;
-        // @see https://gitlab.com/KittenPopo/csgo-2018-source/-/blob/main/game/shared/econ/econ_item_view.h#L313
-        econItemView.ItemIDLow = (uint)itemId & 0xFFFFFFFF;
-        econItemView.ItemIDHigh = (uint)itemId >> 32;
+        econItemView.ItemIDLow = (uint)(itemId & 0xFFFFFFFF);
+        econItemView.ItemIDHigh = (uint)(itemId >> 32);
     }
 
     public bool IsCustomWeaponItemID(CBasePlayerWeapon weapon)
     {
         return weapon.AttributeManager.Item.ItemID >= MinimumCustomItemID;
-    }
-
-    public void SetPlayerModel(
-        IPlayer player,
-        string model,
-        bool voFallback = true,
-        string voPrefix = "",
-        bool voFemale = false,
-        List<uint>? patches = null
-    )
-    {
-        Core.Scheduler.NextTick(() =>
-        {
-            if (!player.IsValid)
-                return;
-            var pawn = player.PlayerPawn;
-            if (pawn == null || !pawn.IsValid)
-                return;
-            if (patches != null && patches.Count == 5)
-                for (
-                    var index = 0;
-                    index < patches.Count && index < pawn.PlayerPatchEconIndices.ElementCount;
-                    index++
-                )
-                    pawn.PlayerPatchEconIndices[index] = patches[index];
-            pawn.SetModel(model);
-        });
-    }
-
-    public IPlayer? GetPlayerFromItemServices(CCSPlayer_ItemServices itemServices)
-    {
-        var pawn = itemServices.Pawn;
-        return
-            pawn != null && pawn.IsValid && pawn.Controller.IsValid && pawn.Controller.Value != null
-            ? Core.PlayerManager.GetPlayerFromSteamID(pawn.Controller.Value.SteamID)
-            : null;
     }
 
     public bool IsPlayerUseCmdBusy(IPlayer player)

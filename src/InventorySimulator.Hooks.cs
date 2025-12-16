@@ -4,14 +4,15 @@
  *--------------------------------------------------------------------------------------------*/
 
 using System.Runtime.InteropServices;
+using CS2Lib;
 using SwiftlyS2.Shared.SchemaDefinitions;
 
 namespace InventorySimulator;
 
 public partial class InventorySimulator
 {
-    public GameFunctions.CServerSideClientBase_ActivatePlayerDelegate OnActivatePlayer(
-        Func<GameFunctions.CServerSideClientBase_ActivatePlayerDelegate> next
+    public Natives.CServerSideClientBase_ActivatePlayerDelegate OnActivatePlayer(
+        Func<Natives.CServerSideClientBase_ActivatePlayerDelegate> next
     )
     {
         return (thisPtr) =>
@@ -22,12 +23,10 @@ public partial class InventorySimulator
                 if (!PlayerInventoryManager.ContainsKey(player.SteamID))
                 {
                     PlayerInventoryPostFetchHandlers[player.SteamID] = () =>
-                        Core.Scheduler.NextTick(() =>
+                        Core.Scheduler.NextWorldUpdate(() =>
                         {
                             if (player.Controller.IsValid)
-                                GameFunctions.CServerSideClientBase_ActivatePlayer.CallOriginal(
-                                    thisPtr
-                                );
+                                Natives.CServerSideClientBase_ActivatePlayer.CallOriginal(thisPtr);
                         });
                     if (!FetchingPlayerInventory.ContainsKey(player.SteamID))
                         RefreshPlayerInventory(player);
@@ -37,38 +36,74 @@ public partial class InventorySimulator
         };
     }
 
-    public GameFunctions.CCSPlayerController_UpdateTeamSelectionPreviewDelegate OnUpdateTeamSelectionPreview(
-        Func<GameFunctions.CCSPlayerController_UpdateTeamSelectionPreviewDelegate> next
+    public Natives.CCSPlayer_ItemServices_GiveNamedItemDelegate OnGiveNamedItem(
+        Func<Natives.CCSPlayer_ItemServices_GiveNamedItemDelegate> next
     )
     {
-        return (thisPtr, a2) =>
+        return (thisPtr, pchName, a3, pScriptItem, a5, a6) =>
         {
-            var ret = next()(thisPtr, a2);
-            var controller = Core.Memory.ToSchemaClass<CCSPlayerController>(thisPtr);
-            // TODO Pass controller directly to GiveTeamPreviewItems.
-            var player = Core.PlayerManager.GetPlayerFromSteamID(controller.SteamID);
-            if (player != null)
-                GiveTeamPreviewItems("team_select", player);
+            var designerName = Marshal.PtrToStringUTF8(pchName);
+            if (
+                designerName != null
+                && pScriptItem == nint.Zero
+                && CS2Items.IsMeleeDesignerName(designerName)
+            )
+            {
+                var itemServices = Core.Memory.ToSchemaClass<CCSPlayer_ItemServices>(thisPtr);
+                var controller = itemServices.GetController();
+                if (controller?.SteamID != 0 && controller?.InventoryServices?.IsValid == true)
+                {
+                    var inventory = controller.InventoryServices.GetInventory();
+                    if (inventory.IsValid)
+                        pScriptItem = inventory.GetItemInLoadout(
+                            controller.TeamNum,
+                            (int)loadout_slot_t.LOADOUT_SLOT_MELEE
+                        );
+                }
+            }
+            var ret = next()(thisPtr, pchName, a3, pScriptItem, a5, a6);
             return ret;
         };
     }
 
-    public GameFunctions.CCSPlayer_ItemServices_GiveNamedItemDelegate OnGiveNamedItem(
-        Func<GameFunctions.CCSPlayer_ItemServices_GiveNamedItemDelegate> next
+    public Natives.CCSPlayerInventory_GetItemInLoadoutDelegate OnGetItemInLoadout(
+        Func<Natives.CCSPlayerInventory_GetItemInLoadoutDelegate> next
     )
     {
-        return (thisPtr, pchName, a3, a4, a5, a6) =>
+        return (thisPtr, team, slot) =>
         {
-            var ret = next()(thisPtr, pchName, a3, a4, a5, a6);
-            var designerName = Marshal.PtrToStringUTF8(pchName);
-            if (designerName != null && !designerName.Contains("weapon"))
+            var ret = next()(thisPtr, team, slot);
+            var nativeInventory = new CCSPlayerInventory(thisPtr);
+            if (!nativeInventory.IsValid)
                 return ret;
-            var itemServices = Core.Memory.ToSchemaClass<CCSPlayer_ItemServices>(thisPtr);
-            var weapon = Core.Memory.ToSchemaClass<CBasePlayerWeapon>(ret);
-            var player = GetPlayerFromItemServices(itemServices);
-            if (player != null)
-                GivePlayerWeaponSkin(player, weapon);
-            return ret;
+            var baseItem = Core.Memory.ToSchemaClass<CEconItemView>(ret);
+            if (!baseItem.IsValid)
+                return ret;
+            var steamId = nativeInventory.SOCache.Owner.SteamID;
+            var isFallbackTeam = IsFallbackTeam.Value;
+            var inventory = GetPlayerInventoryBySteamID(nativeInventory.SOCache.Owner.SteamID);
+            var slotType = (loadout_slot_t)slot;
+            var itemWrapper = inventory.GetItemForSlot(
+                slotType,
+                (byte)team,
+                baseItem.ItemDefinitionIndex,
+                isFallbackTeam,
+                MinModels.Value
+            );
+            if (!itemWrapper.HasItem)
+                return ret;
+            var key = $"{steamId}_{team}_{slot}";
+            if (CreatedEconItemViewPointers.TryGetValue(key, out var existingPtr))
+            {
+                var existingItem = Core.Memory.ToSchemaClass<CEconItemView>(existingPtr);
+                ApplyAttributesFromWrapper(existingItem, itemWrapper, inventory, steamId);
+                return existingPtr;
+            }
+            var newItemPtr = Natives.CreateEconItemView(copyFrom: ret);
+            var item = Core.Memory.ToSchemaClass<CEconItemView>(newItemPtr);
+            ApplyAttributesFromWrapper(item, itemWrapper, inventory, steamId);
+            CreatedEconItemViewPointers[key] = newItemPtr;
+            return newItemPtr;
         };
     }
 }

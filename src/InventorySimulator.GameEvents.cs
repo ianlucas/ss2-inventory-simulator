@@ -29,27 +29,8 @@ public partial class InventorySimulator
 
     public void OnPlayerConnect(IPlayer player)
     {
-        if (PlayerOnTickInventoryManager.TryGetValue(player.SteamID, out var tuple))
-            PlayerOnTickInventoryManager[player.SteamID] = (player, tuple.Item2);
         RefreshPlayerInventory(player);
-    }
-
-    public HookResult OnRoundPrestart(EventRoundPrestart @event)
-    {
-        Core.Scheduler.NextTick(() =>
-        {
-            if (Core.EntitySystem.GetGameRules()?.TeamIntroPeriod == true)
-                GiveTeamPreviewItems("team_intro");
-        });
-        return HookResult.Continue;
-    }
-
-    public HookResult OnPlayerSpawn(EventPlayerSpawn @event)
-    {
-        var player = @event.UserIdPlayer;
-        if (player != null && !player.IsFakeClient && player.IsValid)
-            GiveOnPlayerSpawn(player);
-        return HookResult.Continue;
+        UpdatePlayerControllerSteamID(player);
     }
 
     public HookResult OnPlayerDeathPre(EventPlayerDeath @event)
@@ -80,10 +61,10 @@ public partial class InventorySimulator
         var player = @event.UserIdPlayer;
         if (player != null && !player.IsFakeClient)
         {
-            ClearPlayerUseCmd(player.SteamID);
-            ClearPlayerInventoryPostFetchHandler(player.SteamID);
-            ClearPlayerInventory(player.SteamID);
-            ClearInventoryManager();
+            var steamId = player.SteamID;
+            ClearPlayerUseCmd(steamId);
+            ClearPlayerInventoryPostFetchHandler(steamId);
+            ClearPlayerEconItemViewPointers(steamId);
         }
         return HookResult.Continue;
     }

@@ -15,21 +15,18 @@ public partial class InventorySimulator
     public readonly ConcurrentDictionary<ulong, bool> LoadedPlayerInventory = [];
     public readonly ConcurrentDictionary<ulong, long> PlayerCooldownManager = [];
     public readonly ConcurrentDictionary<ulong, long> PlayerSprayCooldownManager = [];
-    public readonly ConcurrentDictionary<
-        ulong,
-        (IPlayer?, PlayerInventory)
-    > PlayerOnTickInventoryManager = [];
     public readonly ConcurrentDictionary<ulong, PlayerInventory> PlayerInventoryManager = [];
     public readonly ConcurrentDictionary<ulong, CancellationTokenSource> PlayerUseCmdManager = [];
     public readonly ConcurrentDictionary<ulong, bool> PlayerUseCmdBlockManager = [];
     public readonly ConcurrentDictionary<ulong, Action> PlayerInventoryPostFetchHandlers = [];
+    public readonly ConcurrentDictionary<string, nint> CreatedEconItemViewPointers = [];
+    public readonly ConcurrentDictionary<uint, ulong> ControllerSteamIDManager = [];
 
     public readonly PlayerInventory EmptyInventory = new();
 
     private static readonly string[] TeamSelectSuffixes = ["counterterrorist", "terrorist"];
     public static readonly string InventoryFileDir = "csgo/addons/swiftlycs2/configs";
-    public static readonly ulong MinimumCustomItemID = 68719476736;
-
+    public static readonly ulong MinimumCustomItemID = 45155030971;
     public static readonly bool IsWindows = OperatingSystem.IsWindows();
 
     public ulong NextItemId = MinimumCustomItemID;

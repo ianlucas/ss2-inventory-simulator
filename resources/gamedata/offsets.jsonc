@@ -1,0 +1,19 @@
+{
+  // set in SOCacheSubscribed
+  // find instruction like *(_QWORD *)(a1 + 104) = a3;
+  // a3 is the subscribed caches
+  "CCSPlayerInventory::m_pSOCache": {
+    "windows": 104,
+    "linux": 104
+  },
+  // cstrike15_src, found by the virtual function GetOwner
+  "CGCClientSharedObjectCache::m_Owner": {
+    "windows": 40,
+    "linux": 40
+  },
+  // after m_nPersonaDataXpTrailLevel + 4
+  "CCSPlayerController_InventoryServices::m_pInventory": {
+    "linux": 112,
+    "windows": 112
+  }
+}

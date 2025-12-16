@@ -39,11 +39,6 @@ public partial class InventorySimulator
         "URL format string displayed when using the !ws command.",
         "{Host}"
     );
-    public readonly IConVar<bool> IsWsGlovesFix = core.ConVar.Create(
-        "invsim_ws_gloves_fix",
-        "Apply the glove change fix when refreshing inventory.",
-        false
-    );
     public readonly IConVar<bool> IsWsImmediately = core.ConVar.Create(
         "invsim_ws_immediately",
         "Apply skin changes immediately without requiring a respawn.",

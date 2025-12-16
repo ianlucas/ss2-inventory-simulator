@@ -23,35 +23,15 @@ public partial class InventorySimulator
         }
     }
 
-    public void OnTick()
-    {
-        foreach (var (player, inventory) in PlayerOnTickInventoryManager.Values)
-            if (player != null)
-                GivePlayerMusicKit(player, inventory);
-    }
-
     public void OnEntityCreated(IOnEntityCreatedEvent @event)
     {
         var entity = @event.Entity;
         var designerName = entity.DesignerName;
-        if (designerName.Contains("weapon"))
-        {
-            Core.Scheduler.NextTick(() =>
-            {
-                var weapon = entity.As<CBasePlayerWeapon>();
-                if (!weapon.IsValid || weapon.OriginalOwnerXuidLow == 0)
-                    return;
-                var player = Core.PlayerManager.GetPlayerFromSteamID(weapon.OriginalOwnerXuidLow);
-                if (player == null || player.IsFakeClient || !player.IsValid)
-                    return;
-                GivePlayerWeaponSkin(player, weapon);
-            });
-        }
-        else if (designerName == "player_spray_decal")
+        if (designerName == "player_spray_decal")
         {
             if (!IsSprayChangerEnabled.Value)
                 return;
-            Core.Scheduler.NextTick(() =>
+            Core.Scheduler.NextWorldUpdate(() =>
             {
                 var sprayDecal = entity.As<CPlayerSprayDecal>();
                 if (!sprayDecal.IsValid || sprayDecal.AccountID == 0)
@@ -69,5 +49,17 @@ public partial class InventorySimulator
         if (!IsSprayOnUse.Value)
             return;
         SprayPlayerGraffitiThruPlayerButtons(Core.PlayerManager.GetPlayer(@event.PlayerId));
+    }
+
+    public void OnEntityDeleted(IOnEntityDeletedEvent @event)
+    {
+        var entity = @event.Entity;
+        var designerName = entity.DesignerName;
+        if (designerName == "cs_player_controller")
+        {
+            var controller = entity.As<CCSPlayerController>();
+            if (controller.SteamID != 0)
+                ClearPlayerControllerSteamID(controller);
+        }
     }
 }

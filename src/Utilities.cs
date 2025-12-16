@@ -7,6 +7,8 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using SwiftlyS2.Shared.Players;
 
+namespace InventorySimulator;
+
 public static class PlayerManagerExtensions
 {
     public static IPlayer? GetPlayerFromSteamID(this IPlayerManagerService manager, ulong steamID)
