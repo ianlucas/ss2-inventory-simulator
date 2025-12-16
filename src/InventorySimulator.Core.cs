@@ -40,8 +40,7 @@ public partial class InventorySimulator
         }
         Core.Scheduler.NextWorldUpdate(() =>
         {
-            Console.WriteLine("Immediately updating glove.");
-            Natives.CCSPlayer_ItemServices_UpdateWearables.Call(itemServices.Address);
+            itemServices.UpdateWearables();
             pawn.AcceptInput("SetBodygroup", "default_gloves,1");
         });
     }
@@ -207,8 +206,8 @@ public partial class InventorySimulator
     public void GiveOnLoadPlayerInventory(IPlayer player)
     {
         var inventory = player.Controller.InventoryServices?.GetInventory();
-        if (inventory != null && inventory.IsValid)
-            Natives.CPlayerInventory_SendInventoryUpdateEvent.Call(inventory.Address);
+        if (inventory?.IsValid == true)
+            inventory.SendInventoryUpdateEvent();
     }
 
     public void GiveOnRefreshPlayerInventory(IPlayer player, PlayerInventory oldInventory)

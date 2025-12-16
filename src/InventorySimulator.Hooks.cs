@@ -55,8 +55,7 @@ public partial class InventorySimulator
                 {
                     var inventory = controller.InventoryServices.GetInventory();
                     if (inventory.IsValid)
-                        pScriptItem = Natives.CCSPlayerInventory_GetItemInLoadout.Call(
-                            inventory.Address,
+                        pScriptItem = inventory.GetItemInLoadout(
                             controller.TeamNum,
                             (int)loadout_slot_t.LOADOUT_SLOT_MELEE
                         );
