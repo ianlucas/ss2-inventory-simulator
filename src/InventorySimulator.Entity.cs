@@ -31,14 +31,14 @@ public partial class InventorySimulator
         attrs.SetOrAddAttribute("set item texture wear", wear);
         if (weaponItem.Stattrak >= 0)
         {
-            var statTrak = TypeConverter.ViewAs<int, float>(weaponItem.Stattrak);
+            var statTrak = TypeHelper.ViewAs<int, float>(weaponItem.Stattrak);
             attrs.SetOrAddAttribute("kill eater", statTrak);
             attrs.SetOrAddAttribute("kill eater score type", 0);
         }
         if (!isKnife)
             foreach (var sticker in weaponItem.Stickers)
             {
-                var id = TypeConverter.ViewAs<uint, float>(sticker.Def);
+                var id = TypeHelper.ViewAs<uint, float>(sticker.Def);
                 var slot = $"sticker slot {sticker.Slot}";
                 attrs.SetOrAddAttribute($"{slot} id", id);
                 attrs.SetOrAddAttribute($"{slot} wear", sticker.Wear);
@@ -92,12 +92,12 @@ public partial class InventorySimulator
             weapon.FallbackStatTrak = weaponItem.Stattrak;
             item.NetworkedDynamicAttributes.SetOrAddAttribute(
                 "kill eater",
-                TypeConverter.ViewAs<int, float>(weaponItem.Stattrak)
+                TypeHelper.ViewAs<int, float>(weaponItem.Stattrak)
             );
             item.NetworkedDynamicAttributes.SetOrAddAttribute("kill eater score type", 0);
             item.AttributeList.SetOrAddAttribute(
                 "kill eater",
-                TypeConverter.ViewAs<int, float>(weaponItem.Stattrak)
+                TypeHelper.ViewAs<int, float>(weaponItem.Stattrak)
             );
             item.AttributeList.SetOrAddAttribute("kill eater score type", 0);
         }
@@ -108,7 +108,7 @@ public partial class InventorySimulator
                 var slot = $"sticker slot {sticker.Slot}";
                 item.NetworkedDynamicAttributes.SetOrAddAttribute(
                     $"{slot} id",
-                    TypeConverter.ViewAs<uint, float>(sticker.Def)
+                    TypeHelper.ViewAs<uint, float>(sticker.Def)
                 );
                 item.NetworkedDynamicAttributes.SetOrAddAttribute($"{slot} wear", sticker.Wear);
                 if (sticker.Rotation != null)
@@ -157,7 +157,7 @@ public partial class InventorySimulator
             if (patch != 0)
                 item.AttributeList.SetOrAddAttribute(
                     $"sticker slot {i} id",
-                    TypeConverter.ViewAs<uint, float>(patch)
+                    TypeHelper.ViewAs<uint, float>(patch)
                 );
         }
     }
@@ -172,7 +172,7 @@ public partial class InventorySimulator
         item.NetworkedDynamicAttributes.Attributes.RemoveAll();
         item.NetworkedDynamicAttributes.SetOrAddAttribute(
             "music id",
-            TypeConverter.ViewAs<int, float>(musicKitItem.Def)
+            TypeHelper.ViewAs<int, float>(musicKitItem.Def)
         );
     }
 

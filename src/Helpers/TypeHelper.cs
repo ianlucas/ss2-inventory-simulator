@@ -7,7 +7,7 @@ using System.Runtime.CompilerServices;
 
 namespace InventorySimulator;
 
-public static class TypeConverter
+public static class TypeHelper
 {
     public static TTo ViewAs<TFrom, TTo>(TFrom value)
         where TFrom : unmanaged

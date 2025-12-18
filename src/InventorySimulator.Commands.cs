@@ -13,7 +13,7 @@ public partial class InventorySimulator
     public void OnWSCommand(ICommandContext context)
     {
         var player = context.Sender;
-        var url = UrlFormatter.FormatUrl(WsUrlPrintFormat.Value, Url.Value);
+        var url = UrlHelper.FormatUrl(WsUrlPrintFormat.Value, Url.Value);
         player?.SendChat(Core.Localizer["invsim.announce", url]);
         if (!IsWsEnabled.Value || player == null)
             return;

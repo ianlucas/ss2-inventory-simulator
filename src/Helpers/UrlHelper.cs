@@ -8,7 +8,7 @@ using System.Text.RegularExpressions;
 
 namespace InventorySimulator;
 
-public static partial class UrlFormatter
+public static partial class UrlHelper
 {
     public static string FormatUrl(string format, string urlString)
     {
