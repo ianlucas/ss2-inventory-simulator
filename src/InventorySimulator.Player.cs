@@ -65,6 +65,12 @@ public partial class InventorySimulator
                 Marshal.FreeHGlobal(ptr);
     }
 
+    public void ClearAllPlayerEconItemViewPointers()
+    {
+        foreach (var ptr in CreatedEconItemViewPointers.Values)
+            Marshal.FreeHGlobal(ptr);
+    }
+
     public void UpdatePlayerControllerSteamID(IPlayer player)
     {
         var steamID = player.Controller.SteamID;

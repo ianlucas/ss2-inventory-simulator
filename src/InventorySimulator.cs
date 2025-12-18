@@ -40,5 +40,8 @@ public partial class InventorySimulator(ISwiftlyCore core) : BasePlugin(core)
         OnIsRequireInventoryChanged();
     }
 
-    public override void Unload() { }
+    public override void Unload()
+    {
+        ClearAllPlayerEconItemViewPointers();
+    }
 }
