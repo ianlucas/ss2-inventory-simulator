@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+using InventorySimulator.Services;
+using Microsoft.Extensions.Logging;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.Plugins;
@@ -25,6 +27,7 @@ public partial class InventorySimulator(ISwiftlyCore core) : BasePlugin(core)
     public override void Load(bool hotReload)
     {
         Natives.Initialize(Core);
+        InventorySimulatorApi.Initialize(Core.Logger, Url);
         Core.Event.OnEntityCreated += OnEntityCreated;
         Core.Event.OnEntityDeleted += OnEntityDeleted;
         Core.Event.OnConVarValueChanged += OnConVarValueChanged;

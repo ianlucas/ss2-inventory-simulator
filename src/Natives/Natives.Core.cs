@@ -13,6 +13,10 @@ public static partial class Natives
 {
     private static ISwiftlyCore? _core;
 
+    private static ISwiftlyCore RequireCore =>
+        _core
+        ?? throw new InvalidOperationException("Natives not initialized. Call Initialize() first.");
+
     public static void Initialize(ISwiftlyCore core)
     {
         _core = core;
@@ -21,34 +25,22 @@ public static partial class Natives
     public static T ToSchemaClass<T>(nint address)
         where T : class, ISchemaClass<T>
     {
-        if (_core is null)
-            throw new InvalidOperationException(
-                "Natives not initialized. Call Initialize() first."
-            );
-        return _core.Memory.ToSchemaClass<T>(address);
+        return RequireCore.Memory.ToSchemaClass<T>(address);
     }
 
     private static IUnmanagedFunction<TDelegate> FromSignature<TDelegate>(string signature)
         where TDelegate : Delegate
     {
-        if (_core is null)
-            throw new InvalidOperationException(
-                "Natives not initialized. Call Initialize() first."
-            );
-        nint? address = _core.GameData.GetSignature(signature);
+        nint? address = RequireCore.GameData.GetSignature(signature);
         if (address is null)
             throw new InvalidOperationException(
                 $"Failed to locate game function signature '{signature}'. The function may not exist in the current game version or the signature pattern may be outdated."
             );
-        return _core.Memory.GetUnmanagedFunctionByAddress<TDelegate>(address.Value);
+        return RequireCore.Memory.GetUnmanagedFunctionByAddress<TDelegate>(address.Value);
     }
 
     private static int FromOffset(string offset)
     {
-        if (_core is null)
-            throw new InvalidOperationException(
-                "Natives not initialized. Call Initialize() first."
-            );
-        return _core.GameData.GetOffset(offset);
+        return RequireCore.GameData.GetOffset(offset);
     }
 }
