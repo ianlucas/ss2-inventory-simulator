@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-using CS2Lib;
 using SwiftlyS2.Shared.SchemaDefinitions;
 using SwiftlyS2.Shared.SteamAPI;
 
@@ -14,15 +13,6 @@ public static class CEconItemViewExtensions
     public static readonly ulong MinimumCustomItemID = 65155030971;
     private static ulong NextItemId = MinimumCustomItemID;
 
-    public static string? GetDesignerName(this CEconItemView item)
-    {
-        var designerName = CS2Items.GetItemByDef(item.ItemDefinitionIndex)?.Model;
-        return designerName != null ? $"weapon_{designerName}" : null;
-    }
-
-    public static bool IsMelee(this CEconItemView item) =>
-        CS2Items.IsMeleeDef(item.ItemDefinitionIndex);
-
     public static void AssignNewItemID(this CEconItemView econItemView)
     {
         var itemId = NextItemId++;
@@ -31,12 +21,15 @@ public static class CEconItemViewExtensions
         econItemView.ItemIDHigh = (uint)(itemId >> 32);
     }
 
-    public static void ApplyAttributes(this CEconItemView item, WeaponEconItem weaponItem)
+    public static void ApplyAttributes(
+        this CEconItemView item,
+        WeaponEconItem weaponItem,
+        bool isMelee
+    )
     {
-        var isKnife = item.IsMelee();
         var attrs = item.NetworkedDynamicAttributes;
         var wear = weaponItem.WearOverride ?? weaponItem.Wear;
-        if (isKnife)
+        if (isMelee)
         {
             item.ItemDefinitionIndex = weaponItem.Def;
             item.EntityQuality = 3;
@@ -54,7 +47,7 @@ public static class CEconItemViewExtensions
             attrs.SetOrAddAttribute("kill eater", statTrak);
             attrs.SetOrAddAttribute("kill eater score type", 0);
         }
-        if (!isKnife)
+        if (!isMelee)
             foreach (var sticker in weaponItem.Stickers)
             {
                 var slot = $"sticker slot {sticker.Slot}";
@@ -77,11 +70,11 @@ public static class CEconItemViewExtensions
         CCSPlayerController controller
     )
     {
-        var isKnife = CS2Items.IsMeleeDesignerName(weapon.DesignerName);
+        var isMelee = ItemHelper.IsMeleeDesignerName(weapon.DesignerName);
         var entityDef = weapon.AttributeManager.Item.ItemDefinitionIndex;
         var dynAttrs = item.NetworkedDynamicAttributes;
         var attrs = item.AttributeList;
-        if (isKnife)
+        if (isMelee)
         {
             if (entityDef != weaponItem.Def)
                 // Thanks to xstage and stefanx111
@@ -114,7 +107,7 @@ public static class CEconItemViewExtensions
             attrs.SetOrAddAttribute("kill eater", statTrak);
             attrs.SetOrAddAttribute("kill eater score type", 0);
         }
-        if (!isKnife)
+        if (!isMelee)
         {
             foreach (var sticker in weaponItem.Stickers)
             {
@@ -181,13 +174,14 @@ public static class CEconItemViewExtensions
     public static void ApplyAttributes(
         this CEconItemView item,
         PlayerInventoryItem inventoryItem,
-        ulong steamId
+        ulong steamId,
+        bool isMelee
     )
     {
         item.AssignNewItemID();
         item.AccountID = new CSteamID(steamId).GetAccountID().m_AccountID;
         if (inventoryItem.WeaponItem != null)
-            item.ApplyAttributes(inventoryItem.WeaponItem);
+            item.ApplyAttributes(inventoryItem.WeaponItem, isMelee);
         else if (inventoryItem.AgentItem != null)
             item.ApplyAttributes(inventoryItem.AgentItem);
         else if (inventoryItem.GloveItem != null)

@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 using System.Runtime.InteropServices;
-using CS2Lib;
 using SwiftlyS2.Shared.SchemaDefinitions;
 
 namespace InventorySimulator;
@@ -44,8 +43,8 @@ public partial class InventorySimulator
         return (thisPtr, pchName, a3, pScriptItem, a5, a6) =>
         {
             var designerName = Marshal.PtrToStringUTF8(pchName);
-            var isKnife = designerName != null && CS2Items.IsMeleeDesignerName(designerName);
-            if (isKnife && pScriptItem == nint.Zero)
+            var isMelee = designerName != null && ItemHelper.IsMeleeDesignerName(designerName);
+            if (isMelee && pScriptItem == nint.Zero)
             {
                 var itemServices = Core.Memory.ToSchemaClass<CCSPlayer_ItemServices>(thisPtr);
                 var controller = itemServices.GetController();
@@ -54,7 +53,7 @@ public partial class InventorySimulator
                 {
                     controller.InventoryServices.ServerAuthoritativeWeaponSlots.RemoveAll();
                     controller.InventoryServices.ServerAuthoritativeWeaponSlotsUpdated();
-                    if (isKnife)
+                    if (isMelee)
                     {
                         var inventory = controller.InventoryServices.GetInventory();
                         if (inventory.IsValid)
@@ -67,7 +66,7 @@ public partial class InventorySimulator
             }
             var ret = next()(thisPtr, pchName, a3, pScriptItem, a5, a6);
             var weapon = Core.Memory.ToSchemaClass<CBasePlayerWeapon>(ret);
-            if (!isKnife && !weapon.HasCustomItemID())
+            if (!isMelee && !weapon.HasCustomItemID())
             {
                 var itemServices = Core.Memory.ToSchemaClass<CCSPlayer_ItemServices>(thisPtr);
                 var controller = itemServices.GetController();
@@ -104,9 +103,11 @@ public partial class InventorySimulator
             var isFallbackTeam = IsFallbackTeam.Value;
             var inventory = GetPlayerInventoryBySteamID(nativeInventory.SOCache.Owner.SteamID);
             var slotType = (loadout_slot_t)slot;
+            var isMelee = slotType == loadout_slot_t.LOADOUT_SLOT_MELEE;
             var inventoryItem = inventory.GetItemForSlot(
                 slotType,
                 (byte)team,
+                isMelee,
                 baseItem.ItemDefinitionIndex,
                 isFallbackTeam,
                 MinModels.Value
@@ -117,12 +118,12 @@ public partial class InventorySimulator
             if (CreatedCEconItemViewManager.TryGetValue(key, out var existingPtr))
             {
                 var existingItem = Core.Memory.ToSchemaClass<CEconItemView>(existingPtr);
-                existingItem.ApplyAttributes(inventoryItem, steamId);
+                existingItem.ApplyAttributes(inventoryItem, steamId, isMelee);
                 return existingPtr;
             }
-            var newItemPtr = EconItemHelper.CreateCEconItemView(copyFrom: ret);
+            var newItemPtr = SchemaHelper.CreateCEconItemView(copyFrom: ret);
             var item = Core.Memory.ToSchemaClass<CEconItemView>(newItemPtr);
-            item.ApplyAttributes(inventoryItem, steamId);
+            item.ApplyAttributes(inventoryItem, steamId, isMelee);
             CreatedCEconItemViewManager[key] = newItemPtr;
             return newItemPtr;
         };

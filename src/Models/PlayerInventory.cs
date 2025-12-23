@@ -95,6 +95,7 @@ public class PlayerInventory(EquippedV3Response data)
     public PlayerInventoryItem? GetItemForSlot(
         loadout_slot_t slot,
         byte team,
+        bool isMelee,
         ushort? def,
         bool fallback,
         int minModels
@@ -105,9 +106,8 @@ public class PlayerInventory(EquippedV3Response data)
             && slot <= loadout_slot_t.LOADOUT_SLOT_EQUIPMENT5
         )
         {
-            var isKnife = slot == loadout_slot_t.LOADOUT_SLOT_MELEE;
             var weaponItem =
-                isKnife ? GetKnife(team, fallback)
+                isMelee ? GetKnife(team, fallback)
                 : def.HasValue ? GetWeapon(team, def.Value, fallback)
                 : null;
             return weaponItem != null ? PlayerInventoryItem.FromWeapon(weaponItem) : null;

@@ -9,7 +9,7 @@ using SwiftlyS2.Shared.SchemaDefinitions;
 
 namespace InventorySimulator;
 
-public static class EconItemHelper
+public static class SchemaHelper
 {
     public static nint CreateCEconItemView(nint copyFrom = 0)
     {

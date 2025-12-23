@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-using CS2Lib;
 using SwiftlyS2.Shared.Events;
 using SwiftlyS2.Shared.Natives;
 using SwiftlyS2.Shared.Players;
@@ -79,7 +78,7 @@ public partial class InventorySimulator
             return;
         var inventory = GetPlayerInventory(player);
         var isFallbackTeam = IsFallbackTeam.Value;
-        var item = CS2Items.IsMeleeDesignerName(designerName)
+        var item = ItemHelper.IsMeleeDesignerName(designerName)
             ? inventory.GetKnife(player.Controller.TeamNum, isFallbackTeam)
             : inventory.GetWeapon(
                 player.Controller.TeamNum,
