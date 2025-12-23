@@ -3,56 +3,28 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-using System.Text.Json.Serialization;
 using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.SchemaDefinitions;
 
 namespace InventorySimulator;
 
-[method: JsonConstructor]
-public class PlayerInventory(
-    Dictionary<byte, WeaponEconItem>? knives = null,
-    Dictionary<byte, BaseEconItem>? gloves = null,
-    Dictionary<ushort, WeaponEconItem>? tWeapons = null,
-    Dictionary<ushort, WeaponEconItem>? ctWeapons = null,
-    Dictionary<byte, AgentItem>? agents = null,
-    uint? pin = null,
-    MusicKitItem? musicKit = null,
-    GraffitiItem? graffiti = null
-)
+public class PlayerInventory(EquippedV3Response data)
 {
-    [JsonPropertyName("knives")]
-    public Dictionary<byte, WeaponEconItem> Knives { get; set; } = knives ?? [];
+    private readonly EquippedV3Response _data = data;
+    public Dictionary<byte, AgentItem> Agents => _data.Agents;
+    public MusicKitItem? MusicKit => _data.MusicKit;
+    public GraffitiItem? Graffiti => _data.Graffiti;
 
-    [JsonPropertyName("gloves")]
-    public Dictionary<byte, BaseEconItem> Gloves { get; set; } = gloves ?? [];
-
-    [JsonPropertyName("tWeapons")]
-    public Dictionary<ushort, WeaponEconItem> TWeapons { get; set; } = tWeapons ?? [];
-
-    [JsonPropertyName("ctWeapons")]
-    public Dictionary<ushort, WeaponEconItem> CTWeapons { get; set; } = ctWeapons ?? [];
-
-    [JsonPropertyName("agents")]
-    public Dictionary<byte, AgentItem> Agents { get; set; } = agents ?? [];
-
-    [JsonPropertyName("pin")]
-    public uint? Pin { get; set; } = pin;
-
-    [JsonPropertyName("musicKit")]
-    public MusicKitItem? MusicKit { get; set; } = musicKit;
-
-    [JsonPropertyName("graffiti")]
-    public GraffitiItem? Graffiti { get; set; } = graffiti;
+    public static PlayerInventory Empty() => new(new());
 
     public WeaponEconItem? GetKnife(byte team, bool fallback)
     {
-        if (Knives.TryGetValue(team, out var knife))
+        if (_data.Knives.TryGetValue(team, out var knife))
         {
             knife.WearOverride = GetWeaponEconItemWear(knife);
             return knife;
         }
-        if (fallback && Knives.TryGetValue(TeamHelper.ToggleTeam(team), out knife))
+        if (fallback && _data.Knives.TryGetValue(TeamHelper.ToggleTeam(team), out knife))
         {
             knife.WearOverride = GetWeaponEconItemWear(knife);
             return knife;
@@ -62,7 +34,7 @@ public class PlayerInventory(
 
     public Dictionary<ushort, WeaponEconItem> GetWeapons(byte team)
     {
-        return (Team)team == Team.T ? TWeapons : CTWeapons;
+        return (Team)team == Team.T ? _data.TWeapons : _data.CTWeapons;
     }
 
     public WeaponEconItem? GetWeapon(byte team, ushort def, bool fallback)
@@ -82,11 +54,11 @@ public class PlayerInventory(
 
     public BaseEconItem? GetGloves(byte team, bool fallback)
     {
-        if (Gloves.TryGetValue(team, out var glove))
+        if (_data.Gloves.TryGetValue(team, out var glove))
         {
             return glove;
         }
-        if (fallback && Gloves.TryGetValue(TeamHelper.ToggleTeam(team), out glove))
+        if (fallback && _data.Gloves.TryGetValue(TeamHelper.ToggleTeam(team), out glove))
         {
             return glove;
         }
@@ -120,7 +92,7 @@ public class PlayerInventory(
         }
     }
 
-    public InventoryItemWrapper GetItemForSlot(
+    public PlayerInventoryItem? GetItemForSlot(
         loadout_slot_t slot,
         byte team,
         ushort? def,
@@ -138,39 +110,27 @@ public class PlayerInventory(
                 isKnife ? GetKnife(team, fallback)
                 : def.HasValue ? GetWeapon(team, def.Value, fallback)
                 : null;
-            return weaponItem != null
-                ? InventoryItemWrapper.FromWeapon(weaponItem)
-                : InventoryItemWrapper.Empty();
+            return weaponItem != null ? PlayerInventoryItem.FromWeapon(weaponItem) : null;
         }
         if (slot == loadout_slot_t.LOADOUT_SLOT_CLOTHING_CUSTOMPLAYER)
         {
             if (minModels > 0)
                 return team == (byte)Team.T
-                    ? InventoryItemWrapper.FromAgent(new AgentItem { Def = 5036 })
-                    : InventoryItemWrapper.FromAgent(new AgentItem { Def = 5037 });
-            if (Agents.TryGetValue(team, out var agentItem) && agentItem.Def != null)
-                return InventoryItemWrapper.FromAgent(agentItem);
-            return InventoryItemWrapper.Empty();
+                    ? PlayerInventoryItem.FromAgent(new AgentItem { Def = 5036 })
+                    : PlayerInventoryItem.FromAgent(new AgentItem { Def = 5037 });
+            if (_data.Agents.TryGetValue(team, out var agentItem) && agentItem.Def != null)
+                return PlayerInventoryItem.FromAgent(agentItem);
+            return null;
         }
         if (slot == loadout_slot_t.LOADOUT_SLOT_CLOTHING_HANDS)
         {
             var gloveItem = GetGloves(team, fallback);
-            return gloveItem != null
-                ? InventoryItemWrapper.FromGlove(gloveItem)
-                : InventoryItemWrapper.Empty();
+            return gloveItem != null ? PlayerInventoryItem.FromGlove(gloveItem) : null;
         }
         if (slot == loadout_slot_t.LOADOUT_SLOT_FLAIR0)
-        {
-            return Pin.HasValue
-                ? InventoryItemWrapper.FromPin(Pin.Value)
-                : InventoryItemWrapper.Empty();
-        }
+            return _data.Pin.HasValue ? PlayerInventoryItem.FromPin(_data.Pin.Value) : null;
         if (slot == loadout_slot_t.LOADOUT_SLOT_MUSICKIT)
-        {
-            return MusicKit != null
-                ? InventoryItemWrapper.FromMusicKit(MusicKit)
-                : InventoryItemWrapper.Empty();
-        }
-        return InventoryItemWrapper.Empty();
+            return _data.MusicKit != null ? PlayerInventoryItem.FromMusicKit(_data.MusicKit) : null;
+        return null;
     }
 }

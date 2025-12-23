@@ -5,7 +5,7 @@
 
 namespace InventorySimulator;
 
-public class InventoryItemWrapper
+public class PlayerInventoryItem
 {
     public WeaponEconItem? WeaponItem { get; set; }
     public AgentItem? AgentItem { get; set; }
@@ -13,24 +13,15 @@ public class InventoryItemWrapper
     public uint? PinItem { get; set; }
     public MusicKitItem? MusicKitItem { get; set; }
 
-    public bool HasItem =>
-        WeaponItem != null
-        || AgentItem != null
-        || GloveItem != null
-        || PinItem != null
-        || MusicKitItem != null;
-
-    public static InventoryItemWrapper FromWeapon(WeaponEconItem item) =>
+    public static PlayerInventoryItem FromWeapon(WeaponEconItem item) =>
         new() { WeaponItem = item };
 
-    public static InventoryItemWrapper FromAgent(AgentItem item) => new() { AgentItem = item };
+    public static PlayerInventoryItem FromAgent(AgentItem item) => new() { AgentItem = item };
 
-    public static InventoryItemWrapper FromGlove(BaseEconItem item) => new() { GloveItem = item };
+    public static PlayerInventoryItem FromGlove(BaseEconItem item) => new() { GloveItem = item };
 
-    public static InventoryItemWrapper FromPin(uint item) => new() { PinItem = item };
+    public static PlayerInventoryItem FromPin(uint item) => new() { PinItem = item };
 
-    public static InventoryItemWrapper FromMusicKit(MusicKitItem item) =>
+    public static PlayerInventoryItem FromMusicKit(MusicKitItem item) =>
         new() { MusicKitItem = item };
-
-    public static InventoryItemWrapper Empty() => new();
 }

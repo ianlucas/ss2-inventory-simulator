@@ -15,5 +15,9 @@
   "CCSPlayerController_InventoryServices::m_pInventory": {
     "linux": 112,
     "windows": 112
+  },
+  "CServerSideClientBase::m_UserID": {
+    "linux": 168,
+    "windows": 160
   }
 }

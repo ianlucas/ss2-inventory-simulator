@@ -17,7 +17,8 @@ public partial class InventorySimulator
     {
         return (thisPtr) =>
         {
-            var userid = (ushort)Marshal.ReadInt16(thisPtr + (IsWindows ? 160 : 168));
+            var userid = (ushort)
+                Marshal.ReadInt16(thisPtr + Natives.CServerSideClientBase_m_UserID);
             var player = Core.PlayerManager.GetPlayer(userid);
             if (player != null && !player.IsFakeClient && player.Controller != null)
                 if (!PlayerInventoryManager.ContainsKey(player.SteamID))
@@ -110,25 +111,25 @@ public partial class InventorySimulator
             var isFallbackTeam = IsFallbackTeam.Value;
             var inventory = GetPlayerInventoryBySteamID(nativeInventory.SOCache.Owner.SteamID);
             var slotType = (loadout_slot_t)slot;
-            var itemWrapper = inventory.GetItemForSlot(
+            var inventoryItem = inventory.GetItemForSlot(
                 slotType,
                 (byte)team,
                 baseItem.ItemDefinitionIndex,
                 isFallbackTeam,
                 MinModels.Value
             );
-            if (!itemWrapper.HasItem)
+            if (inventoryItem == null)
                 return ret;
             var key = $"{steamId}_{team}_{slot}";
             if (CreatedEconItemViewPointers.TryGetValue(key, out var existingPtr))
             {
                 var existingItem = Core.Memory.ToSchemaClass<CEconItemView>(existingPtr);
-                ApplyAttributesFromWrapper(existingItem, itemWrapper, inventory, steamId);
+                ApplyAttributesFromInventoryItem(existingItem, inventoryItem, steamId);
                 return existingPtr;
             }
             var newItemPtr = EconItemHelper.CreateCEconItemView(copyFrom: ret);
             var item = Core.Memory.ToSchemaClass<CEconItemView>(newItemPtr);
-            ApplyAttributesFromWrapper(item, itemWrapper, inventory, steamId);
+            ApplyAttributesFromInventoryItem(item, inventoryItem, steamId);
             CreatedEconItemViewPointers[key] = newItemPtr;
             return newItemPtr;
         };

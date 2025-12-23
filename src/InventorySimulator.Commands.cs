@@ -60,7 +60,7 @@ public partial class InventorySimulator
     public void OnWsloginCommand(ICommandContext context)
     {
         var player = context.Sender;
-        if (ApiKey.Value != "" && IsWsLogin.Value && player != null)
+        if (IsWsLogin.Value && Api.HasApiKey() && player != null)
         {
             player.SendChat(Core.Localizer["invsim.login_in_progress"]);
             if (AuthenticatingPlayer.ContainsKey(player.SteamID))
