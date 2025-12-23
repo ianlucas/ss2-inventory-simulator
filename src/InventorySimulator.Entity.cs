@@ -178,31 +178,31 @@ public partial class InventorySimulator
 
     public void ApplyAttributesFromInventoryItem(
         CEconItemView item,
-        PlayerInventoryItem wrapper,
+        PlayerInventoryItem inventoryItem,
         ulong steamId
     )
     {
         UpdateEconItemID(item);
         item.AccountID = new CSteamID(steamId).GetAccountID().m_AccountID;
-        if (wrapper.WeaponItem != null)
+        if (inventoryItem.WeaponItem != null)
         {
-            ApplyWeaponAttributesFromItem(item, wrapper.WeaponItem);
+            ApplyWeaponAttributesFromItem(item, inventoryItem.WeaponItem);
         }
-        else if (wrapper.AgentItem != null)
+        else if (inventoryItem.AgentItem != null)
         {
-            ApplyAgentAttributesFromItem(item, wrapper.AgentItem);
+            ApplyAgentAttributesFromItem(item, inventoryItem.AgentItem);
         }
-        else if (wrapper.GloveItem != null)
+        else if (inventoryItem.GloveItem != null)
         {
-            ApplyGloveAttributesFromItem(item, wrapper.GloveItem);
+            ApplyGloveAttributesFromItem(item, inventoryItem.GloveItem);
         }
-        else if (wrapper.PinItem != null)
+        else if (inventoryItem.PinItem != null)
         {
-            ApplyPinAttributesFromItem(item, wrapper.PinItem.Value);
+            ApplyPinAttributesFromItem(item, inventoryItem.PinItem.Value);
         }
-        else if (wrapper.MusicKitItem != null)
+        else if (inventoryItem.MusicKitItem != null)
         {
-            ApplyMusicKitAttributesFromItem(item, wrapper.MusicKitItem);
+            ApplyMusicKitAttributesFromItem(item, inventoryItem.MusicKitItem);
         }
     }
 

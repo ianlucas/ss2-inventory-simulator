@@ -8,14 +8,12 @@ using SwiftlyS2.Shared.SchemaDefinitions;
 
 namespace InventorySimulator;
 
-public class PlayerInventory
+public class PlayerInventory(EquippedV3Response data)
 {
-    private readonly EquippedV3Response _data;
-
-    public PlayerInventory(EquippedV3Response data)
-    {
-        _data = data;
-    }
+    private readonly EquippedV3Response _data = data;
+    public Dictionary<byte, AgentItem> Agents => _data.Agents;
+    public MusicKitItem? MusicKit => _data.MusicKit;
+    public GraffitiItem? Graffiti => _data.Graffiti;
 
     public static PlayerInventory Empty() => new(new());
 
