@@ -63,8 +63,8 @@ public partial class InventorySimulator
         {
             var steamId = player.SteamID;
             ClearPlayerUseCmd(steamId);
-            ClearPlayerInventoryPostFetchHandler(steamId);
-            ClearPlayerEconItemViewPointers(steamId);
+            ClearPlayerPostFetch(steamId);
+            ClearCreatedCEconItem(steamId);
         }
         return HookResult.Continue;
     }

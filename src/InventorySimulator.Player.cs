@@ -29,7 +29,7 @@ public partial class InventorySimulator
                 foreach (var pair in inventories)
                 {
                     LoadedInventoryManager.TryAdd(pair.Key, true);
-                    AddPlayerInventory(pair.Key, pair.Value);
+                    SetPlayerInventory(pair.Key, pair.Value);
                 }
             }
         }
@@ -39,7 +39,7 @@ public partial class InventorySimulator
         }
     }
 
-    public void AddPlayerInventory(ulong steamId, PlayerInventory inventory)
+    public void SetPlayerInventory(ulong steamId, PlayerInventory inventory)
     {
         PlayerInventoryManager[steamId] = inventory;
     }
@@ -54,7 +54,7 @@ public partial class InventorySimulator
         }
     }
 
-    public void ClearPlayerEconItemViewPointers(ulong steamId)
+    public void ClearCreatedCEconItem(ulong steamId)
     {
         var prefix = $"{steamId}_";
         var keysToRemove = CreatedCEconItemViewManager
@@ -65,7 +65,7 @@ public partial class InventorySimulator
                 Marshal.FreeHGlobal(ptr);
     }
 
-    public void ClearAllPlayerEconItemViewPointers()
+    public void FreeCreatedCEconItemView()
     {
         foreach (var ptr in CreatedCEconItemViewManager.Values)
             Marshal.FreeHGlobal(ptr);
@@ -114,7 +114,7 @@ public partial class InventorySimulator
         }
     }
 
-    public void ClearPlayerInventoryPostFetchHandler(ulong steamId)
+    public void ClearPlayerPostFetch(ulong steamId)
     {
         PlayerPostFetchManager.TryRemove(steamId, out _);
     }

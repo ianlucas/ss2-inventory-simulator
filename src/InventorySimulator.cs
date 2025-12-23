@@ -43,6 +43,6 @@ public partial class InventorySimulator(ISwiftlyCore core) : BasePlugin(core)
 
     public override void Unload()
     {
-        ClearAllPlayerEconItemViewPointers();
+        FreeCreatedCEconItemView();
     }
 }

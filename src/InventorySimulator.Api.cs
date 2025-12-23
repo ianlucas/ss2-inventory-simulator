@@ -24,7 +24,7 @@ public partial class InventorySimulator
             if (existing != null)
                 inventory.CachedWeaponEconItems = existing.CachedWeaponEconItems;
             PlayerCooldownManager[steamId] = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-            AddPlayerInventory(steamId, inventory);
+            SetPlayerInventory(steamId, inventory);
         }
         PlayerInFetchManager.Remove(steamId, out var _);
         if (PlayerPostFetchManager.TryGetValue(steamId, out var callback))
