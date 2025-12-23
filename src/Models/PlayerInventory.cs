@@ -17,23 +17,16 @@ public class PlayerInventory
         _data = data;
     }
 
-    public Dictionary<byte, WeaponEconItem> Knives => _data.Knives;
-    public Dictionary<byte, BaseEconItem> Gloves => _data.Gloves;
-    public Dictionary<ushort, WeaponEconItem> TWeapons => _data.TWeapons;
-    public Dictionary<ushort, WeaponEconItem> CTWeapons => _data.CTWeapons;
-    public Dictionary<byte, AgentItem> Agents => _data.Agents;
-    public uint? Pin => _data.Pin;
-    public MusicKitItem? MusicKit => _data.MusicKit;
-    public GraffitiItem? Graffiti => _data.Graffiti;
+    public static PlayerInventory Empty() => new(new());
 
     public WeaponEconItem? GetKnife(byte team, bool fallback)
     {
-        if (Knives.TryGetValue(team, out var knife))
+        if (_data.Knives.TryGetValue(team, out var knife))
         {
             knife.WearOverride = GetWeaponEconItemWear(knife);
             return knife;
         }
-        if (fallback && Knives.TryGetValue(TeamHelper.ToggleTeam(team), out knife))
+        if (fallback && _data.Knives.TryGetValue(TeamHelper.ToggleTeam(team), out knife))
         {
             knife.WearOverride = GetWeaponEconItemWear(knife);
             return knife;
@@ -43,7 +36,7 @@ public class PlayerInventory
 
     public Dictionary<ushort, WeaponEconItem> GetWeapons(byte team)
     {
-        return (Team)team == Team.T ? TWeapons : CTWeapons;
+        return (Team)team == Team.T ? _data.TWeapons : _data.CTWeapons;
     }
 
     public WeaponEconItem? GetWeapon(byte team, ushort def, bool fallback)
@@ -63,11 +56,11 @@ public class PlayerInventory
 
     public BaseEconItem? GetGloves(byte team, bool fallback)
     {
-        if (Gloves.TryGetValue(team, out var glove))
+        if (_data.Gloves.TryGetValue(team, out var glove))
         {
             return glove;
         }
-        if (fallback && Gloves.TryGetValue(TeamHelper.ToggleTeam(team), out glove))
+        if (fallback && _data.Gloves.TryGetValue(TeamHelper.ToggleTeam(team), out glove))
         {
             return glove;
         }
@@ -129,7 +122,7 @@ public class PlayerInventory
                 return team == (byte)Team.T
                     ? InventoryItemWrapper.FromAgent(new AgentItem { Def = 5036 })
                     : InventoryItemWrapper.FromAgent(new AgentItem { Def = 5037 });
-            if (Agents.TryGetValue(team, out var agentItem) && agentItem.Def != null)
+            if (_data.Agents.TryGetValue(team, out var agentItem) && agentItem.Def != null)
                 return InventoryItemWrapper.FromAgent(agentItem);
             return InventoryItemWrapper.Empty();
         }
@@ -142,14 +135,14 @@ public class PlayerInventory
         }
         if (slot == loadout_slot_t.LOADOUT_SLOT_FLAIR0)
         {
-            return Pin.HasValue
-                ? InventoryItemWrapper.FromPin(Pin.Value)
+            return _data.Pin.HasValue
+                ? InventoryItemWrapper.FromPin(_data.Pin.Value)
                 : InventoryItemWrapper.Empty();
         }
         if (slot == loadout_slot_t.LOADOUT_SLOT_MUSICKIT)
         {
-            return MusicKit != null
-                ? InventoryItemWrapper.FromMusicKit(MusicKit)
+            return _data.MusicKit != null
+                ? InventoryItemWrapper.FromMusicKit(_data.MusicKit)
                 : InventoryItemWrapper.Empty();
         }
         return InventoryItemWrapper.Empty();

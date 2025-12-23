@@ -21,7 +21,7 @@ public partial class InventorySimulator
     public readonly ConcurrentDictionary<string, nint> CreatedEconItemViewPointers = [];
     public readonly ConcurrentDictionary<uint, ulong> ControllerSteamIDManager = [];
 
-    public readonly PlayerInventory EmptyInventory = new(new EquippedV3Response());
+    public readonly PlayerInventory EmptyInventory = PlayerInventory.Empty();
 
     public static readonly string InventoryFileDir = "csgo/addons/swiftlycs2/configs";
     public static readonly ulong MinimumCustomItemID = 65155030971;
