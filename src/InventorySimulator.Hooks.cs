@@ -17,7 +17,8 @@ public partial class InventorySimulator
     {
         return (thisPtr) =>
         {
-            var userid = (ushort)Marshal.ReadInt16(thisPtr + (IsWindows ? 160 : 168));
+            var userid = (ushort)
+                Marshal.ReadInt16(thisPtr + Natives.CServerSideClientBase_m_UserID);
             var player = Core.PlayerManager.GetPlayer(userid);
             if (player != null && !player.IsFakeClient && player.Controller != null)
                 if (!PlayerInventoryManager.ContainsKey(player.SteamID))
