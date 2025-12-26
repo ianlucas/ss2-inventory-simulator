@@ -48,5 +48,15 @@
     "lib": "server",
     "windows": "40 56 57 41 54 48 83 EC ? 48 8B F9 45 33 E4",
     "linux": "55 48 89 E5 41 57 41 56 41 55 41 54 53 48 89 FB 48 83 EC ? 8B 8F ? ? ? ? 83 F9 ? 0F 84 ? ? ? ? 48 8B 35 ? ? ? ? 48 85 F6 0F 84 ? ? ? ? 83 F9 ? 0F 84 ? ? ? ? 0F B7 87 ? ? ? ? 48 89 C2 48 C1 EA ? 83 E2 ? 48 8B 14 D6 48 85 D2 0F 84 ? ? ? ? 25 ? ? ? ? 48 6B C0 ? 48 01 D0 3B 48 ? 0F 85 ? ? ? ? 4C 8B 28"
+  },
+  "GetItemSchema": {
+    "lib": "server",
+    "windows": "",
+    "linux": "48 8B 05 ? ? ? ? 48 85 C0 74 ? 48 8B 40 ? C3 0F 1F 80 ? ? ? ? 55 BF ? ? ? ? 48 89 E5 53 48 83 EC ? E8 ? ? ? ? BF ? ? ? ? 48 89 C3 48 8D 05 ? ? ? ? 48 C7 43 ? ? ? ? ? 48 89 03 E8 ? ? ? ? 48 89 C7 48 89 45 ? E8 ? ? ? ? 48 8B 45 ? 48 8D 15 ? ? ? ? 48 89 1D ? ? ? ? 48 89 13 48 89 43 ? 48 8B 5D ? C9 C3 CC CC CC CC CC CC CC CC CC CC CC 55"
+  },
+  "CEconItemSchema::GetItemDefinitionByName": {
+    "lib": "server",
+    "windows": "",
+    "linux": "55 48 89 E5 41 57 41 56 41 55 41 54 53 48 83 EC ? 80 BF ? ? ? ? ? 75"
   }
 }

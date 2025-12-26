@@ -43,46 +43,37 @@ public partial class InventorySimulator
         return (thisPtr, pchName, a3, pScriptItem, a5, a6) =>
         {
             var designerName = Marshal.PtrToStringUTF8(pchName);
-            var isMelee = designerName != null && ItemHelper.IsMeleeDesignerName(designerName);
-            if (isMelee && pScriptItem == nint.Zero)
+            if (designerName != null && pScriptItem == nint.Zero)
             {
                 var itemServices = Core.Memory.ToSchemaClass<CCSPlayer_ItemServices>(thisPtr);
                 var controller = itemServices.GetController();
-
                 if (controller?.SteamID != 0 && controller?.InventoryServices != null)
                 {
-                    controller.InventoryServices.ServerAuthoritativeWeaponSlots.RemoveAll();
-                    controller.InventoryServices.ServerAuthoritativeWeaponSlotsUpdated();
-                    if (isMelee)
+                    var itemDef = SchemaHelper
+                        .GetItemSchema()
+                        ?.GetItemDefinitionByName(designerName);
+                    if (itemDef != null)
                     {
-                        var inventory = controller.InventoryServices.GetInventory();
-                        if (inventory.IsValid)
-                            pScriptItem = inventory.GetItemInLoadout(
+                        var isMelee =
+                            itemDef.DefaultLoadoutSlot == loadout_slot_t.LOADOUT_SLOT_MELEE;
+                        var inventory = GetPlayerInventoryBySteamID(controller.SteamID);
+                        var item = isMelee
+                            ? inventory.GetKnife(controller.TeamNum, IsFallbackTeam.Value)
+                            : inventory.GetWeapon(
                                 controller.TeamNum,
-                                loadout_slot_t.LOADOUT_SLOT_MELEE
+                                itemDef.DefIndex,
+                                IsFallbackTeam.Value
                             );
+                        if (item != null)
+                        {
+                            var scriptItem = SchemaHelper.CreateCEconItemView();
+                            scriptItem.InitFrom(controller.SteamID, item, isMelee);
+                            pScriptItem = scriptItem.Address;
+                        }
                     }
                 }
             }
-            var ret = next()(thisPtr, pchName, a3, pScriptItem, a5, a6);
-            var weapon = Core.Memory.ToSchemaClass<CBasePlayerWeapon>(ret);
-            if (!isMelee && !weapon.HasCustomItemID())
-            {
-                var itemServices = Core.Memory.ToSchemaClass<CCSPlayer_ItemServices>(thisPtr);
-                var controller = itemServices.GetController();
-                if (controller?.SteamID != 0 && controller?.InventoryServices?.IsValid == true)
-                {
-                    var inventory = GetPlayerInventoryBySteamID(controller.SteamID);
-                    var item = inventory.GetWeapon(
-                        controller.TeamNum,
-                        weapon.AttributeManager.Item.ItemDefinitionIndex,
-                        IsFallbackTeam.Value
-                    );
-                    if (item != null)
-                        weapon.AttributeManager.Item.ApplyAttributes(item, weapon, controller);
-                }
-            }
-            return ret;
+            return next()(thisPtr, pchName, a3, pScriptItem, a5, a6);
         };
     }
 
@@ -121,11 +112,10 @@ public partial class InventorySimulator
                 existingItem.ApplyAttributes(inventoryItem, steamId, isMelee);
                 return existingPtr;
             }
-            var newItemPtr = SchemaHelper.CreateCEconItemView(copyFrom: ret);
-            var item = Core.Memory.ToSchemaClass<CEconItemView>(newItemPtr);
+            var item = SchemaHelper.CreateCEconItemView(copyFrom: ret);
             item.ApplyAttributes(inventoryItem, steamId, isMelee);
-            CreatedCEconItemViewManager[key] = newItemPtr;
-            return newItemPtr;
+            CreatedCEconItemViewManager[key] = item.Address;
+            return item.Address;
         };
     }
 }
