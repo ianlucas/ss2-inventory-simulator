@@ -54,21 +54,18 @@ public partial class InventorySimulator
                         ?.GetItemDefinitionByName(designerName);
                     if (itemDef != null)
                     {
-                        var isMelee =
-                            itemDef.DefaultLoadoutSlot == loadout_slot_t.LOADOUT_SLOT_MELEE;
-                        var inventory = GetPlayerInventoryBySteamID(controller.SteamID);
-                        var item = isMelee
-                            ? inventory.GetKnife(controller.TeamNum, IsFallbackTeam.Value)
-                            : inventory.GetWeapon(
+                        var econItem = GetPlayerInventoryBySteamID(controller.SteamID)
+                            .GetEconItemForSlot(
+                                itemDef.DefaultLoadoutSlot,
                                 controller.TeamNum,
                                 itemDef.DefIndex,
                                 IsFallbackTeam.Value
                             );
-                        if (item != null)
+                        if (econItem != null)
                         {
-                            var scriptItem = SchemaHelper.CreateCEconItemView();
-                            scriptItem.InitFrom(controller.SteamID, item, isMelee);
-                            pScriptItem = scriptItem.Address;
+                            var item = SchemaHelper.CreateCEconItemView();
+                            item.Apply(econItem, itemDef.DefaultLoadoutSlot, controller.SteamID);
+                            pScriptItem = item.Address;
                         }
                     }
                 }
@@ -94,26 +91,24 @@ public partial class InventorySimulator
             var isFallbackTeam = IsFallbackTeam.Value;
             var inventory = GetPlayerInventoryBySteamID(nativeInventory.SOCache.Owner.SteamID);
             var slotType = (loadout_slot_t)slot;
-            var isMelee = slotType == loadout_slot_t.LOADOUT_SLOT_MELEE;
-            var inventoryItem = inventory.GetItemForSlot(
+            var econItem = inventory.GetEconItemForSlot(
                 slotType,
                 (byte)team,
-                isMelee,
                 baseItem.ItemDefinitionIndex,
                 isFallbackTeam,
                 MinModels.Value
             );
-            if (inventoryItem == null)
+            if (econItem == null)
                 return ret;
             var key = $"{steamId}_{team}_{slot}";
             if (CreatedCEconItemViewManager.TryGetValue(key, out var existingPtr))
             {
                 var existingItem = Core.Memory.ToSchemaClass<CEconItemView>(existingPtr);
-                existingItem.ApplyAttributes(inventoryItem, steamId, isMelee);
+                existingItem.Apply(econItem, slotType, steamId);
                 return existingPtr;
             }
             var item = SchemaHelper.CreateCEconItemView(copyFrom: ret);
-            item.ApplyAttributes(inventoryItem, steamId, isMelee);
+            item.Apply(econItem, slotType, steamId);
             CreatedCEconItemViewManager[key] = item.Address;
             return item.Address;
         };
