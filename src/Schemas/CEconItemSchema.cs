@@ -43,4 +43,11 @@ public class CEconItemSchema : INativeHandle
             pool.Return(nameBuffer);
         }
     }
+
+    public CEconItemDefinition? GetItemDefinition(uint defIndex)
+    {
+        var address = Natives.CEconItemSchema_GetItemDefinition.Call(Address, defIndex, 0);
+        var itemDef = new CEconItemDefinition(address);
+        return itemDef.IsValid ? itemDef : null;
+    }
 }

@@ -84,7 +84,7 @@ public class EconItem
         var wear = WearOverride ?? Wear;
         if (wear != null)
             attributes.Add(("set item texture wear", wear.Value));
-        if (Stattrak != null)
+        if (Stattrak != null && Stattrak > -1)
         {
             var statTrak = TypeHelper.ViewAs<int, float>(Stattrak.Value);
             attributes.Add(("kill eater", statTrak));
