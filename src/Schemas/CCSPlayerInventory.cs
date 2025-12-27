@@ -10,16 +10,11 @@ using SwiftlyS2.Shared.SchemaDefinitions;
 namespace InventorySimulator;
 
 // Thanks to @samyycX.
-public class CCSPlayerInventory : INativeHandle
+public class CCSPlayerInventory(nint address) : INativeHandle
 {
-    public nint Address { get; set; }
+    public nint Address { get; set; } = address;
     public bool IsValid => Address != 0 && SOCache.IsValid;
     public ulong SteamID => SOCache.Owner.SteamID;
-
-    public CCSPlayerInventory(nint address)
-    {
-        Address = address;
-    }
 
     public CGCClientSharedObjectCache SOCache =>
         new(Marshal.ReadIntPtr(Address + Natives.CCSPlayerInventory_m_pSOCache));

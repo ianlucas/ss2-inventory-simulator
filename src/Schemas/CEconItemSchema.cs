@@ -9,15 +9,10 @@ using SwiftlyS2.Shared.Natives;
 
 namespace InventorySimulator;
 
-public class CEconItemSchema : INativeHandle
+public class CEconItemSchema(nint address) : INativeHandle
 {
-    public nint Address { get; set; }
+    public nint Address { get; set; } = address;
     public bool IsValid => Address != 0;
-
-    public CEconItemSchema(nint address)
-    {
-        Address = address;
-    }
 
     public unsafe CEconItemDefinition? GetItemDefinitionByName(string pchName)
     {
