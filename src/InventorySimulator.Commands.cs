@@ -9,33 +9,6 @@ namespace InventorySimulator;
 
 public partial class InventorySimulator
 {
-    [Command("ws")]
-    public void OnWSCommand(ICommandContext context)
-    {
-        var player = context.Sender;
-        var url = UrlHelper.FormatUrl(WsUrlPrintFormat.Value, Url.Value);
-        player?.SendChat(Core.Localizer["invsim.announce", url]);
-        if (!IsWsEnabled.Value || player == null)
-            return;
-        if (PlayerCooldownManager.TryGetValue(player.SteamID, out var timestamp))
-        {
-            var cooldown = WsCooldown.Value;
-            var diff = DateTimeOffset.UtcNow.ToUnixTimeSeconds() - timestamp;
-            if (diff < cooldown)
-            {
-                player.SendChat(Core.Localizer["invsim.ws_cooldown", cooldown - diff]);
-                return;
-            }
-        }
-        if (PlayerInFetchManager.ContainsKey(player.SteamID))
-        {
-            player.SendChat(Core.Localizer["invsim.ws_in_progress"]);
-            return;
-        }
-        RefreshPlayerInventory(player, true);
-        player.SendChat(Core.Localizer["invsim.ws_new"]);
-    }
-
     [Command("wslogin")]
     public void OnWsloginCommand(ICommandContext context)
     {

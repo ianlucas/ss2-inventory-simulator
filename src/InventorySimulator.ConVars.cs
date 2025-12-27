@@ -19,21 +19,6 @@ public partial class InventorySimulator
         "Ignore StatTrak kill count increments for bot kills.",
         true
     );
-    public readonly IConVar<bool> IsWsEnabled = core.ConVar.Create(
-        "invsim_ws_enabled",
-        "Allow players to refresh their inventory using the !ws command.",
-        false
-    );
-    public readonly IConVar<string> WsUrlPrintFormat = core.ConVar.Create(
-        "invsim_ws_url_print_format",
-        "URL format string displayed when using the !ws command.",
-        "{Host}"
-    );
-    public readonly IConVar<bool> IsWsImmediately = core.ConVar.Create(
-        "invsim_ws_immediately",
-        "Apply skin changes immediately without requiring a respawn.",
-        false
-    );
     public readonly IConVar<bool> IsFallbackTeam = core.ConVar.Create(
         "invsim_fallback_team",
         "Allow using skins from any team (prioritizes current team first).",
@@ -43,11 +28,6 @@ public partial class InventorySimulator
         "invsim_require_inventory",
         "Require the player's inventory to be fetched before allowing them to join the game.",
         false
-    );
-    public readonly IConVar<int> WsCooldown = core.ConVar.Create(
-        "invsim_ws_cooldown",
-        "Cooldown duration in seconds between inventory refreshes per player.",
-        30
     );
     public readonly IConVar<string> ApiKey = core.ConVar.Create(
         "invsim_apikey",

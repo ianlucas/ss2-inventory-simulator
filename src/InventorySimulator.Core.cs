@@ -20,7 +20,6 @@ public partial class InventorySimulator
                 player.PlayerPawn?.SetModel("characters/models/tm_phoenix/tm_phoenix.vmdl");
             if (player.Controller.Team == Team.CT)
                 player.PlayerPawn?.SetModel("characters/models/ctm_sas/ctm_sas.vmdl");
-            return;
         }
     }
 
@@ -110,132 +109,11 @@ public partial class InventorySimulator
         SendStatTrakIncrement(player.SteamID, item.Uid);
     }
 
-    public void RegivePlayerWeapons(
-        IPlayer player,
-        PlayerInventory inventory,
-        PlayerInventory oldInventory
-    )
-    {
-        var pawn = player.PlayerPawn;
-        var weaponServices = pawn?.WeaponServices?.As<CCSPlayer_WeaponServices>();
-        if (pawn == null || weaponServices == null)
-            return;
-        var activeDesignerName = weaponServices.ActiveWeapon.Value?.DesignerName;
-        var targets = new List<(string, string, int, int, bool, gear_slot_t)>();
-        foreach (var handle in weaponServices.MyWeapons)
-        {
-            var weapon = handle.Value?.As<CCSWeaponBase>();
-            if (weapon == null || weapon.DesignerName.Contains("weapon_") != true)
-                continue;
-            if (weapon.OriginalOwnerXuidLow != (uint)player.SteamID)
-                continue;
-            var data = weapon.VData.As<CCSWeaponBaseVData>();
-            if (
-                data.GearSlot
-                is gear_slot_t.GEAR_SLOT_RIFLE
-                    or gear_slot_t.GEAR_SLOT_PISTOL
-                    or gear_slot_t.GEAR_SLOT_KNIFE
-            )
-            {
-                var entityDef = weapon.AttributeManager.Item.ItemDefinitionIndex;
-                var isFallbackTeam = IsFallbackTeam.Value;
-                var oldItem =
-                    data.GearSlot is gear_slot_t.GEAR_SLOT_KNIFE
-                        ? oldInventory.GetKnife(player.Controller.TeamNum, isFallbackTeam)
-                        : oldInventory.GetWeapon(
-                            player.Controller.TeamNum,
-                            entityDef,
-                            isFallbackTeam
-                        );
-                var item =
-                    data.GearSlot is gear_slot_t.GEAR_SLOT_KNIFE
-                        ? inventory.GetKnife(player.Controller.TeamNum, isFallbackTeam)
-                        : inventory.GetWeapon(player.Controller.TeamNum, entityDef, isFallbackTeam);
-                if (oldItem == item)
-                    continue;
-                var clip = weapon.Clip1;
-                var reserve = weapon.ReserveAmmo[0];
-                targets.Add(
-                    (
-                        weapon.DesignerName,
-                        weapon.GetDesignerName(),
-                        clip,
-                        reserve,
-                        activeDesignerName == weapon.DesignerName,
-                        data.GearSlot
-                    )
-                );
-            }
-        }
-        foreach (var target in targets)
-        {
-            var designerName = target.Item1;
-            var actualDesignerName = target.Item2;
-            var clip = target.Item3;
-            var reserve = target.Item4;
-            var active = target.Item5;
-            var gearSlot = target.Item6;
-            var oldWeapon = (
-                (CHandle<CBasePlayerWeapon>?)
-                    weaponServices.MyWeapons.FirstOrDefault(h =>
-                        h.Value?.DesignerName == designerName
-                    )
-            )?.Value;
-            if (oldWeapon != null)
-            {
-                weaponServices.DropWeapon(oldWeapon);
-                oldWeapon.Despawn();
-            }
-            var weapon = player.PlayerPawn?.ItemServices?.GiveItem<CBasePlayerWeapon>(
-                actualDesignerName
-            );
-            if (weapon != null)
-                Core.Scheduler.Delay(
-                    32,
-                    () =>
-                    {
-                        if (weapon.IsValid)
-                        {
-                            weapon.Clip1 = clip;
-                            weapon.Clip1Updated();
-                            weapon.ReserveAmmo[0] = reserve;
-                            weapon.ReserveAmmoUpdated();
-                            Core.Scheduler.NextWorldUpdate(() =>
-                            {
-                                if (active && player.IsValid)
-                                {
-                                    var command = gearSlot switch
-                                    {
-                                        gear_slot_t.GEAR_SLOT_RIFLE => "slot1",
-                                        gear_slot_t.GEAR_SLOT_PISTOL => "slot2",
-                                        gear_slot_t.GEAR_SLOT_KNIFE => "slot3",
-                                        _ => null,
-                                    };
-                                    if (command != null)
-                                        player.ExecuteCommand(command);
-                                }
-                            });
-                        }
-                    }
-                );
-        }
-    }
-
     public void GiveOnPlayerSpawn(IPlayer player)
     {
         var inventory = GetPlayerInventory(player);
         GivePlayerAgent(player);
         GivePlayerGloves(player, inventory);
-    }
-
-    public void GiveOnRefreshPlayerInventory(IPlayer player, PlayerInventory oldInventory)
-    {
-        var inventory = GetPlayerInventory(player);
-        if (IsWsImmediately.Value)
-        {
-            GivePlayerGloves(player, inventory);
-            RegivePlayerWeapons(player, inventory, oldInventory);
-        }
     }
 
     public void OnFileChanged()

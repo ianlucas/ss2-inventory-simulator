@@ -34,23 +34,9 @@ public partial class InventorySimulator
         }
     }
 
-    public async void RefreshPlayerInventory(IPlayer player, bool force = false)
+    public async void RefreshPlayerInventory(IPlayer player)
     {
-        if (!force)
-        {
-            await FetchPlayerInventory(player.SteamID);
-            return;
-        }
-        var oldInventory = GetPlayerInventory(player);
-        await FetchPlayerInventory(player.SteamID, true);
-        Core.Scheduler.NextWorldUpdate(() =>
-        {
-            if (player.IsValid)
-            {
-                player.SendChat(Core.Localizer["invsim.ws_completed"]);
-                GiveOnRefreshPlayerInventory(player, oldInventory);
-            }
-        });
+        await FetchPlayerInventory(player.SteamID);
     }
 
     public async void SendStatTrakIncrement(ulong userId, int targetUid)
