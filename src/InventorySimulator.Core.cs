@@ -238,6 +238,27 @@ public partial class InventorySimulator
         }
     }
 
+    public nint GivePlayerEconItem(
+        ulong steamId,
+        int team,
+        int slot,
+        EconItem econItem,
+        nint copyFrom = 0
+    )
+    {
+        var key = $"{steamId}_{team}_{slot}";
+        if (CreatedCEconItemViewManager.TryGetValue(key, out var existingPtr))
+        {
+            var existingItem = Core.Memory.ToSchemaClass<CEconItemView>(existingPtr);
+            existingItem.Apply(econItem, (loadout_slot_t)slot, steamId);
+            return existingPtr;
+        }
+        var item = SchemaHelper.CreateCEconItemView(copyFrom);
+        item.Apply(econItem, (loadout_slot_t)slot, steamId);
+        CreatedCEconItemViewManager[key] = item.Address;
+        return item.Address;
+    }
+
     public void GivePlayerGraffiti(IPlayer player, CPlayerSprayDecal sprayDecal)
     {
         var inventory = GetPlayerInventory(player);

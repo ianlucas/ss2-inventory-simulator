@@ -93,8 +93,8 @@ public class PlayerInventory
     }
 
     public EconItem? GetEconItemForSlot(
-        loadout_slot_t slot,
         byte team,
+        loadout_slot_t slot,
         ushort def,
         bool fallback,
         int minModels = 0

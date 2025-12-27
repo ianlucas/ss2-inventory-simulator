@@ -56,17 +56,18 @@ public partial class InventorySimulator
                     {
                         var econItem = GetPlayerInventoryBySteamID(controller.SteamID)
                             .GetEconItemForSlot(
-                                itemDef.DefaultLoadoutSlot,
                                 controller.TeamNum,
+                                itemDef.DefaultLoadoutSlot,
                                 itemDef.DefIndex,
                                 IsFallbackTeam.Value
                             );
                         if (econItem != null)
-                        {
-                            var item = SchemaHelper.CreateCEconItemView();
-                            item.Apply(econItem, itemDef.DefaultLoadoutSlot, controller.SteamID);
-                            pScriptItem = item.Address;
-                        }
+                            pScriptItem = GivePlayerEconItem(
+                                controller.SteamID,
+                                controller.TeamNum,
+                                (int)itemDef.DefaultLoadoutSlot,
+                                econItem
+                            );
                     }
                 }
             }
@@ -81,36 +82,24 @@ public partial class InventorySimulator
         return (thisPtr, team, slot) =>
         {
             var ret = next()(thisPtr, team, slot);
-            var nativeInventory = new CCSPlayerInventory(thisPtr);
-            if (!nativeInventory.IsValid)
+            var inventory = new CCSPlayerInventory(thisPtr);
+            if (!inventory.IsValid)
                 return ret;
-            var baseItem = Core.Memory.ToSchemaClass<CEconItemView>(ret);
-            if (!baseItem.IsValid)
+            var item = Core.Memory.ToSchemaClass<CEconItemView>(ret);
+            if (!item.IsValid)
                 return ret;
-            var steamId = nativeInventory.SOCache.Owner.SteamID;
-            var isFallbackTeam = IsFallbackTeam.Value;
-            var inventory = GetPlayerInventoryBySteamID(nativeInventory.SOCache.Owner.SteamID);
-            var slotType = (loadout_slot_t)slot;
-            var econItem = inventory.GetEconItemForSlot(
-                slotType,
-                (byte)team,
-                baseItem.ItemDefinitionIndex,
-                isFallbackTeam,
-                MinModels.Value
-            );
-            if (econItem == null)
-                return ret;
-            var key = $"{steamId}_{team}_{slot}";
-            if (CreatedCEconItemViewManager.TryGetValue(key, out var existingPtr))
-            {
-                var existingItem = Core.Memory.ToSchemaClass<CEconItemView>(existingPtr);
-                existingItem.Apply(econItem, slotType, steamId);
-                return existingPtr;
-            }
-            var item = SchemaHelper.CreateCEconItemView(copyFrom: ret);
-            item.Apply(econItem, slotType, steamId);
-            CreatedCEconItemViewManager[key] = item.Address;
-            return item.Address;
+            var steamId = inventory.SOCache.Owner.SteamID;
+            var econItem = GetPlayerInventoryBySteamID(inventory.SOCache.Owner.SteamID)
+                .GetEconItemForSlot(
+                    (byte)team,
+                    (loadout_slot_t)slot,
+                    item.ItemDefinitionIndex,
+                    IsFallbackTeam.Value,
+                    MinModels.Value
+                );
+            if (econItem != null)
+                return GivePlayerEconItem(steamId, team, slot, econItem, ret);
+            return ret;
         };
     }
 }
