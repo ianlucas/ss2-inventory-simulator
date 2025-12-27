@@ -12,7 +12,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="SwiftlyS2.CS2" Version="1.0.4" ExcludeAssets="runtime" PrivateAssets="all" />
+    <PackageReference
+      Include="SwiftlyS2.CS2"
+      Version="1.0.4"
+      ExcludeAssets="runtime"
+      PrivateAssets="all"
+    />
   </ItemGroup>
 
   <ItemGroup>
@@ -30,6 +35,10 @@
       <PublishFiles Include="$(PublishDir)**\*.*" />
     </ItemGroup>
 
-    <ZipDirectory SourceDirectory="$(PublishDir)../" DestinationFile="$(OutputPath)../$(AssemblyName).zip" Overwrite="true" />
+    <ZipDirectory
+      SourceDirectory="$(PublishDir)../"
+      DestinationFile="$(OutputPath)../$(AssemblyName).zip"
+      Overwrite="true"
+    />
   </Target>
 </Project>

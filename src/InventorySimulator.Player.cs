@@ -48,7 +48,6 @@ public partial class InventorySimulator
         if (!LoadedInventoryManager.ContainsKey(steamId))
         {
             PlayerInventoryManager.Remove(steamId, out _);
-            PlayerCooldownManager.Remove(steamId, out _);
             PlayerSprayCooldownManager.Remove(steamId, out _);
         }
     }

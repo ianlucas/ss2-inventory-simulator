@@ -12,7 +12,6 @@ public partial class InventorySimulator
     public readonly ConcurrentDictionary<ulong, bool> PlayerInFetchManager = [];
     public readonly ConcurrentDictionary<ulong, bool> PlayerInAuthManager = [];
     public readonly ConcurrentDictionary<ulong, bool> LoadedInventoryManager = [];
-    public readonly ConcurrentDictionary<ulong, long> PlayerCooldownManager = [];
     public readonly ConcurrentDictionary<ulong, long> PlayerSprayCooldownManager = [];
     public readonly ConcurrentDictionary<ulong, PlayerInventory> PlayerInventoryManager = [];
     public readonly ConcurrentDictionary<ulong, Action> PlayerPostFetchManager = [];

@@ -44,7 +44,7 @@ public partial class InventorySimulator
             {
                 if (pawn.IsValid)
                 {
-                    glove.ApplyAttributes(item);
+                    glove.ApplyGloveAttributes(item);
                     // Thanks to xstage and stefanx111
                     pawn.AcceptInput("SetBodygroup", value: "default_gloves,1");
                 }
@@ -70,7 +70,7 @@ public partial class InventorySimulator
                     isFallbackTeam
                 );
             if (item != null)
-                weapon.AttributeManager.Item.ApplyAttributes(item, weapon, controller);
+                weapon.AttributeManager.Item.ApplyWeaponAttributes(item, weapon, controller);
         }
     }
 

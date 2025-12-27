@@ -9,15 +9,8 @@ namespace InventorySimulator;
 
 public static class CBasePlayerWeaponExtensions
 {
-    public static string GetDesignerName(this CBasePlayerWeapon weapon)
+    public static bool HasCustomItemID(this CBasePlayerWeapon self)
     {
-        return ItemHelper.IsMeleeDesignerName(weapon.DesignerName)
-            ? "weapon_knife"
-            : weapon.DesignerName;
-    }
-
-    public static bool HasCustomItemID(this CBasePlayerWeapon weapon)
-    {
-        return weapon.AttributeManager.Item.ItemID >= CEconItemViewExtensions.MinimumCustomItemID;
+        return self.AttributeManager.Item.ItemID >= CEconItemViewExtensions.MinimumCustomItemID;
     }
 }

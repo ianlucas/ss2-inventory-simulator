@@ -13,112 +13,70 @@ public static class CEconItemViewExtensions
     public static readonly ulong MinimumCustomItemID = 65155030971;
     private static ulong NextItemId = MinimumCustomItemID;
 
-    public static void AssignNewItemID(this CEconItemView econItemView)
+    public static void AssignNewItemID(this CEconItemView self)
     {
         var itemId = NextItemId++;
-        econItemView.ItemID = itemId;
-        econItemView.ItemIDLow = (uint)(itemId & 0xFFFFFFFF);
-        econItemView.ItemIDHigh = (uint)(itemId >> 32);
+        self.ItemID = itemId;
+        self.ItemIDLow = (uint)(itemId & 0xFFFFFFFF);
+        self.ItemIDHigh = (uint)(itemId >> 32);
     }
 
-    public static void ApplyAttributes(this CEconItemView glove, BaseEconItem item)
+    public static void ApplyGloveAttributes(this CEconItemView self, BaseEconItem econItem)
     {
-        var netAttrs = glove.NetworkedDynamicAttributes;
-        var attrs = glove.AttributeList;
-        glove.Initialized = true;
-        glove.ItemDefinitionIndex = item.Def;
-        glove.AssignNewItemID();
+        var netAttrs = self.NetworkedDynamicAttributes;
+        var attrs = self.AttributeList;
+        self.Initialized = true;
+        self.ItemDefinitionIndex = econItem.Def;
+        self.AssignNewItemID();
         netAttrs.Attributes.RemoveAll();
-        netAttrs.SetOrAddAttribute("set item texture prefab", item.Paint);
-        netAttrs.SetOrAddAttribute("set item texture seed", item.Seed);
-        netAttrs.SetOrAddAttribute("set item texture wear", item.Wear);
+        netAttrs.SetOrAddAttribute("set item texture prefab", econItem.Paint);
+        netAttrs.SetOrAddAttribute("set item texture seed", econItem.Seed);
+        netAttrs.SetOrAddAttribute("set item texture wear", econItem.Wear);
         attrs.Attributes.RemoveAll();
-        attrs.SetOrAddAttribute("set item texture prefab", item.Paint);
-        attrs.SetOrAddAttribute("set item texture seed", item.Seed);
-        attrs.SetOrAddAttribute("set item texture wear", item.Wear);
+        attrs.SetOrAddAttribute("set item texture prefab", econItem.Paint);
+        attrs.SetOrAddAttribute("set item texture seed", econItem.Seed);
+        attrs.SetOrAddAttribute("set item texture wear", econItem.Wear);
     }
 
-    public static void ApplyAttributes(
-        this CEconItemView item,
-        WeaponEconItem weaponItem,
-        bool isMelee
-    )
-    {
-        var attrs = item.NetworkedDynamicAttributes;
-        var wear = weaponItem.WearOverride ?? weaponItem.Wear;
-        if (isMelee)
-        {
-            item.ItemDefinitionIndex = weaponItem.Def;
-            item.EntityQuality = 3;
-        }
-        else
-            item.EntityQuality = weaponItem.Stattrak >= 0 ? 9 : 4;
-        item.CustomName = weaponItem.Nametag;
-        attrs.Attributes.RemoveAll();
-        attrs.SetOrAddAttribute("set item texture prefab", weaponItem.Paint);
-        attrs.SetOrAddAttribute("set item texture seed", weaponItem.Seed);
-        attrs.SetOrAddAttribute("set item texture wear", wear);
-        if (weaponItem.Stattrak >= 0)
-        {
-            var statTrak = TypeHelper.ViewAs<int, float>(weaponItem.Stattrak);
-            attrs.SetOrAddAttribute("kill eater", statTrak);
-            attrs.SetOrAddAttribute("kill eater score type", 0);
-        }
-        if (!isMelee)
-            foreach (var sticker in weaponItem.Stickers)
-            {
-                var slot = $"sticker slot {sticker.Slot}";
-                var id = TypeHelper.ViewAs<uint, float>(sticker.Def);
-                attrs.SetOrAddAttribute($"{slot} id", id);
-                attrs.SetOrAddAttribute($"{slot} wear", sticker.Wear);
-                if (sticker.Rotation != null)
-                    attrs.SetOrAddAttribute($"{slot} rotation", sticker.Rotation.Value);
-                if (sticker.X != null)
-                    attrs.SetOrAddAttribute($"{slot} offset x", sticker.X.Value);
-                if (sticker.Y != null)
-                    attrs.SetOrAddAttribute($"{slot} offset y", sticker.Y.Value);
-            }
-    }
-
-    public static void ApplyAttributes(
-        this CEconItemView item,
-        WeaponEconItem weaponItem,
+    public static void ApplyWeaponAttributes(
+        this CEconItemView self,
+        WeaponEconItem econItem,
         CBasePlayerWeapon weapon,
         CCSPlayerController controller
     )
     {
         var isMelee = ItemHelper.IsMeleeDesignerName(weapon.DesignerName);
         var entityDef = weapon.AttributeManager.Item.ItemDefinitionIndex;
-        var dynAttrs = item.NetworkedDynamicAttributes;
-        var attrs = item.AttributeList;
+        var dynAttrs = self.NetworkedDynamicAttributes;
+        var attrs = self.AttributeList;
         if (isMelee)
         {
-            if (entityDef != weaponItem.Def)
+            if (entityDef != econItem.Def)
                 // Thanks to xstage and stefanx111
-                weapon.AcceptInput("ChangeSubclass", value: weaponItem.Def.ToString());
-            item.ItemDefinitionIndex = weaponItem.Def;
-            item.EntityQuality = 3;
+                weapon.AcceptInput("ChangeSubclass", value: econItem.Def.ToString());
+            self.ItemDefinitionIndex = econItem.Def;
+            self.EntityQuality = 3;
         }
         else
-            item.EntityQuality = weaponItem.Stattrak >= 0 ? 9 : 4;
-        item.AssignNewItemID();
-        weapon.FallbackPaintKit = weaponItem.Paint;
-        weapon.FallbackSeed = weaponItem.Seed;
-        weapon.FallbackWear = weaponItem.WearOverride ?? weaponItem.Wear;
-        item.AccountID = new CSteamID(controller.SteamID).GetAccountID().m_AccountID;
-        item.CustomName = weaponItem.Nametag;
+            self.EntityQuality = econItem.Stattrak >= 0 ? 9 : 4;
+        self.AssignNewItemID();
+        weapon.FallbackPaintKit = econItem.Paint;
+        weapon.FallbackSeed = econItem.Seed;
+        weapon.FallbackWear = econItem.WearOverride ?? econItem.Wear;
+        self.AccountID = new CSteamID(controller.SteamID).GetAccountID().m_AccountID;
+        self.CustomName = econItem.Nametag;
         dynAttrs.Attributes.RemoveAll();
-        dynAttrs.SetOrAddAttribute("set item texture prefab", weaponItem.Paint);
-        dynAttrs.SetOrAddAttribute("set item texture seed", weaponItem.Seed);
-        dynAttrs.SetOrAddAttribute("set item texture wear", weaponItem.Wear);
+        dynAttrs.SetOrAddAttribute("set item texture prefab", econItem.Paint);
+        dynAttrs.SetOrAddAttribute("set item texture seed", econItem.Seed);
+        dynAttrs.SetOrAddAttribute("set item texture wear", econItem.Wear);
         attrs.Attributes.RemoveAll();
-        attrs.SetOrAddAttribute("set item texture prefab", weaponItem.Paint);
-        attrs.SetOrAddAttribute("set item texture seed", weaponItem.Seed);
-        attrs.SetOrAddAttribute("set item texture wear", weaponItem.Wear);
-        if (weaponItem.Stattrak >= 0)
+        attrs.SetOrAddAttribute("set item texture prefab", econItem.Paint);
+        attrs.SetOrAddAttribute("set item texture seed", econItem.Seed);
+        attrs.SetOrAddAttribute("set item texture wear", econItem.Wear);
+        if (econItem.Stattrak >= 0)
         {
-            weapon.FallbackStatTrak = weaponItem.Stattrak;
-            var statTrak = TypeHelper.ViewAs<int, float>(weaponItem.Stattrak);
+            weapon.FallbackStatTrak = econItem.Stattrak;
+            var statTrak = TypeHelper.ViewAs<int, float>(econItem.Stattrak);
             dynAttrs.SetOrAddAttribute("kill eater", statTrak);
             dynAttrs.SetOrAddAttribute("kill eater score type", 0);
             attrs.SetOrAddAttribute("kill eater", statTrak);
@@ -126,7 +84,7 @@ public static class CEconItemViewExtensions
         }
         if (!isMelee)
         {
-            foreach (var sticker in weaponItem.Stickers)
+            foreach (var sticker in econItem.Stickers)
             {
                 var slot = $"sticker slot {sticker.Slot}";
                 var id = TypeHelper.ViewAs<uint, float>(sticker.Def);
@@ -139,7 +97,7 @@ public static class CEconItemViewExtensions
                 if (sticker.Y != null)
                     dynAttrs.SetOrAddAttribute($"{slot} offset y", sticker.Y.Value);
             }
-            weapon.AcceptInput("SetBodygroup", value: $"body,{(weaponItem.Legacy ? 1 : 0)}");
+            weapon.AcceptInput("SetBodygroup", value: $"body,{(econItem.Legacy ? 1 : 0)}");
         }
     }
 }
