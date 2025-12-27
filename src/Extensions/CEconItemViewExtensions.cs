@@ -13,7 +13,7 @@ public static class CEconItemViewExtensions
     public static readonly ulong MinimumCustomItemID = 65155030971;
     private static ulong NextItemId = MinimumCustomItemID;
 
-    public static void Apply(
+    public static void ApplyAttributes(
         this CEconItemView self,
         EconItem econItem,
         loadout_slot_t? slot,

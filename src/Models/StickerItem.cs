@@ -7,7 +7,7 @@ using System.Text.Json.Serialization;
 
 namespace InventorySimulator;
 
-public class StickerItemV4
+public class StickerItem
 {
     [JsonPropertyName("def")]
     public uint Def { get; set; }

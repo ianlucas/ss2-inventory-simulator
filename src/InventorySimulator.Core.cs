@@ -19,6 +19,8 @@ public partial class InventorySimulator
         PlayerInventory oldInventory
     )
     {
+        if (MinModels.Value > 0)
+            return;
         var pawn = player.PlayerPawn;
         if (pawn == null)
             return;
@@ -250,11 +252,11 @@ public partial class InventorySimulator
         if (CreatedCEconItemViewManager.TryGetValue(key, out var existingPtr))
         {
             var existingItem = Core.Memory.ToSchemaClass<CEconItemView>(existingPtr);
-            existingItem.Apply(econItem, (loadout_slot_t)slot, steamId);
+            existingItem.ApplyAttributes(econItem, (loadout_slot_t)slot, steamId);
             return existingPtr;
         }
         var item = SchemaHelper.CreateCEconItemView(copyFrom);
-        item.Apply(econItem, (loadout_slot_t)slot, steamId);
+        item.ApplyAttributes(econItem, (loadout_slot_t)slot, steamId);
         CreatedCEconItemViewManager[key] = item.Address;
         return item.Address;
     }

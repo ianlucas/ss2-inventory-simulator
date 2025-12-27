@@ -31,7 +31,7 @@ public class EconItem
     public int? Stattrak { get; set; }
 
     [JsonPropertyName("stickers")]
-    public List<StickerItemV4>? Stickers { get; set; }
+    public List<StickerItem>? Stickers { get; set; }
 
     [JsonPropertyName("tint")]
     public int? Tint { get; set; }
