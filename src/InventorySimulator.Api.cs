@@ -65,16 +65,16 @@ public partial class InventorySimulator
             await Api.SendStatTrakIncrement(targetUid, userId.ToString());
     }
 
-    public async void SendSignIn(ulong userId)
+    public async void SendSignIn(ulong steamId)
     {
-        if (PlayerInAuthManager.ContainsKey(userId))
+        if (PlayerInAuthManager.ContainsKey(steamId))
             return;
-        PlayerInAuthManager.TryAdd(userId, true);
-        var response = await Api.SendSignIn(userId.ToString());
-        PlayerInAuthManager.TryRemove(userId, out var _);
+        PlayerInAuthManager.TryAdd(steamId, true);
+        var response = await Api.SendSignIn(steamId.ToString());
+        PlayerInAuthManager.TryRemove(steamId, out var _);
         Core.Scheduler.NextWorldUpdate(() =>
         {
-            var player = Core.PlayerManager.GetPlayerFromSteamID(userId);
+            var player = Core.PlayerManager.GetPlayerFromSteamID(steamId);
             if (response == null)
             {
                 player?.SendChat(Core.Localizer["invsim.login_failed"]);

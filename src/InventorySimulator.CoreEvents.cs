@@ -48,7 +48,9 @@ public partial class InventorySimulator
     {
         if (!IsSprayOnUse.Value)
             return;
-        SprayPlayerGraffitiThruPlayerButtons(Core.PlayerManager.GetPlayer(@event.PlayerId));
+        var player = Core.PlayerManager.GetPlayer(@event.PlayerId);
+        if (player != null)
+            SprayPlayerGraffitiThruPlayerButtons(player);
     }
 
     public void OnEntityDeleted(IOnEntityDeletedEvent @event)
