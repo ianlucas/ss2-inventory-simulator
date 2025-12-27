@@ -4,23 +4,11 @@ invsim_minmodels 0
 invsim_stattrak_ignore_bots true
     Ignore StatTrak kill count increments for bot kills.
 
-invsim_ws_enabled false
-    Allow players to refresh their inventory using the !ws command.
-
-invsim_ws_url_print_format "{Host}"
-    URL format string displayed when using the !ws command.
-
-invsim_ws_immediately false
-    Apply skin changes immediately without requiring a respawn.
-
 invsim_fallback_team false
     Allow using skins from any team (prioritizes current team first).
 
 invsim_require_inventory false
     Require the player's inventory to be fetched before allowing them to join the game.
-
-invsim_ws_cooldown 30
-    Cooldown duration in seconds between inventory refreshes per player.
 
 invsim_apikey ""
     API key for the Inventory Simulator service.
@@ -34,8 +22,5 @@ invsim_wslogin false
 invsim_file "inventories.json"
     Inventory data file to load when the plugin starts.
 
-sw_ws
-    Refreshes player inventory from the Inventory Simulator service and displays the configured URL.
-
-sw_wslogin
+wslogin
     Authenticates the player with Inventory Simulator and displays their login URL.
