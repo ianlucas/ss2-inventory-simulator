@@ -7,6 +7,10 @@ namespace InventorySimulator;
 
 public static partial class Natives
 {
+    private static readonly Lazy<int> _lazyCGCClientSharedObjectCache_m_Owner = new(() =>
+        FromOffset("CGCClientSharedObjectCache::m_Owner")
+    );
+
     public static int CGCClientSharedObjectCache_m_Owner =>
-        new Lazy<int>(() => FromOffset("CGCClientSharedObjectCache::m_Owner")).Value;
+        _lazyCGCClientSharedObjectCache_m_Owner.Value;
 }

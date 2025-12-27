@@ -7,8 +7,11 @@ namespace InventorySimulator;
 
 public static partial class Natives
 {
-    public static int CCSPlayerController_InventoryServices_m_pInventory =>
-        new Lazy<int>(() =>
+    private static readonly Lazy<int> _lazyCCSPlayerController_InventoryServices_m_pInventory = new(
+        () =>
             FromOffset("CCSPlayerController_InventoryServices::m_pInventory")
-        ).Value;
+    );
+
+    public static int CCSPlayerController_InventoryServices_m_pInventory =>
+        _lazyCCSPlayerController_InventoryServices_m_pInventory.Value;
 }

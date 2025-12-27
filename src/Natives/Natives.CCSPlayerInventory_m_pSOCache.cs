@@ -7,6 +7,9 @@ namespace InventorySimulator;
 
 public static partial class Natives
 {
-    public static int CCSPlayerInventory_m_pSOCache =>
-        new Lazy<int>(() => FromOffset("CCSPlayerInventory::m_pSOCache")).Value;
+    private static readonly Lazy<int> _lazyCCSPlayerInventory_m_pSOCache = new(() =>
+        FromOffset("CCSPlayerInventory::m_pSOCache")
+    );
+
+    public static int CCSPlayerInventory_m_pSOCache => _lazyCCSPlayerInventory_m_pSOCache.Value;
 }
