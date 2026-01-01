@@ -5,7 +5,6 @@
 
 using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.Misc;
-using SwiftlyS2.Shared.Players;
 
 namespace InventorySimulator;
 

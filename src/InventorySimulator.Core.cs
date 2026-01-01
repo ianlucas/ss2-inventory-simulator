@@ -13,7 +13,21 @@ namespace InventorySimulator;
 
 public partial class InventorySimulator
 {
-    public async Task HandlePlayerInventoryFetch(IPlayer player, bool force = false)
+    // ========================================================================
+    // Connection & Initialization
+    // ========================================================================
+
+    public void HandlePlayerConnect(IPlayer player)
+    {
+        player.Controller.Revalidate();
+        HandlePlayerInventoryRefresh(player);
+    }
+
+    // ========================================================================
+    // Inventory Fetch & Load Operations
+    // ========================================================================
+
+    public static async Task HandlePlayerInventoryFetch(IPlayer player, bool force = false)
     {
         var controllerState = player.Controller.State;
         var existing = controllerState.Inventory;
@@ -60,35 +74,30 @@ public partial class InventorySimulator
         });
     }
 
-    public async void HandleStatTrakIncrement(ulong userId, int targetUid)
+    public static void HandlePlayerInventoryLoad(IPlayer player)
     {
-        if (Api.HasApiKey())
-            await Api.SendStatTrakIncrement(targetUid, userId.ToString());
+        var inventory = player.Controller.InventoryServices?.GetInventory();
+        if (inventory?.IsValid == true)
+            inventory.SendInventoryUpdateEvent();
     }
 
-    public async void HandleSignIn(IPlayer player)
+    public static void HandlePostPlayerInventoryRefresh(
+        IPlayer player,
+        PlayerInventory? oldInventory
+    )
     {
-        var controllerState = player.Controller.State;
-        if (controllerState.IsFetching)
-            return;
-        controllerState.IsFetching = true;
-        var response = await Api.SendSignIn(player.SteamID.ToString());
-        controllerState.IsFetching = false;
-        Core.Scheduler.NextWorldUpdate(() =>
+        var inventory = player.Controller.State.Inventory;
+        if (inventory != null && ConVars.IsWsImmediately.Value)
         {
-            if (response == null)
-            {
-                player?.SendChat(Core.Localizer["invsim.login_failed"]);
-                return;
-            }
-            player?.SendChat(
-                Core.Localizer[
-                    "invsim.login",
-                    $"{Api.GetUrl("/api/sign-in/callback")}?token={response.Token}"
-                ]
-            );
-        });
+            player.RegivePlayerAgent(inventory, oldInventory);
+            player.RegivePlayerGloves(inventory, oldInventory);
+            player.RegivePlayerWeapons(inventory, oldInventory);
+        }
     }
+
+    // ========================================================================
+    // Runtime: StatTrak Operations
+    // ========================================================================
 
     public void HandlePlayerWeaponStatTrakIncrement(
         IPlayer player,
@@ -125,7 +134,7 @@ public partial class InventorySimulator
         HandleStatTrakIncrement(player.SteamID, item.Uid.Value);
     }
 
-    public void HandlePlayerMusicKitStatTrakIncrement(IPlayer player)
+    public static void HandlePlayerMusicKitStatTrakIncrement(IPlayer player)
     {
         var item = player.Controller.State.Inventory?.MusicKit;
         if (item != null && item.Uid != null)
@@ -135,33 +144,37 @@ public partial class InventorySimulator
         }
     }
 
-    public void HandlePlayerInventoryLoad(IPlayer player)
+    public static async void HandleStatTrakIncrement(ulong userId, int targetUid)
     {
-        var inventory = player.Controller.InventoryServices?.GetInventory();
-        if (inventory?.IsValid == true)
-            inventory.SendInventoryUpdateEvent();
+        if (Api.HasApiKey())
+            await Api.SendStatTrakIncrement(targetUid, userId.ToString());
     }
 
-    public void HandlePostPlayerInventoryRefresh(IPlayer player, PlayerInventory? oldInventory)
-    {
-        var inventory = player.Controller.State.Inventory;
-        if (inventory != null && ConVars.IsWsImmediately.Value)
-        {
-            player.RegivePlayerAgent(inventory, oldInventory);
-            player.RegivePlayerGloves(inventory, oldInventory);
-            player.RegivePlayerWeapons(inventory, oldInventory);
-        }
-    }
+    // ========================================================================
+    // Runtime: Graffiti/Spray Operations
+    // ========================================================================
 
-    public void HandlePlayerSprayDecalCreated(IPlayer player, CPlayerSprayDecal sprayDecal)
+    public void HandleClientProcessUsercmds(IPlayer player)
     {
-        var item = player.Controller.State.Inventory?.Graffiti;
-        if (item != null && item.Def != null && item.Tint != null)
+        if (
+            (player.PressedButtons & GameButtonFlags.E) != 0
+            && player.PlayerPawn?.IsAbleToApplySpray() == true
+        )
         {
-            sprayDecal.Player = item.Def.Value;
-            sprayDecal.PlayerUpdated();
-            sprayDecal.TintID = item.Tint.Value;
-            sprayDecal.TintIDUpdated();
+            var controllerState = player.Controller.State;
+            if (player.IsUseCmdBusy())
+                controllerState.IsUseCmdBlocked = true;
+            controllerState.DisposeUseCmdTimer();
+            controllerState.UseCmdTimer = Core.Scheduler.DelayBySeconds(
+                0.1f,
+                () =>
+                {
+                    if (controllerState.IsUseCmdBlocked)
+                        controllerState.IsUseCmdBlocked = false;
+                    else if (player.IsValid && !player.IsUseCmdBusy())
+                        player.ExecuteCommand("css_spray");
+                }
+            );
         }
     }
 
@@ -204,40 +217,49 @@ public partial class InventorySimulator
         }
     }
 
-    public void HandlePlayerConnect(IPlayer player)
+    public static void HandlePlayerSprayDecalCreated(IPlayer player, CPlayerSprayDecal sprayDecal)
     {
-        player.Controller.Revalidate();
-        HandlePlayerInventoryRefresh(player);
-    }
-
-    public void HandleControllerDeleted(CCSPlayerController controller)
-    {
-        controller.RemoveState();
-    }
-
-    public void HandleClientProcessUsercmds(IPlayer player)
-    {
-        if (
-            (player.PressedButtons & GameButtonFlags.E) != 0
-            && player.PlayerPawn?.IsAbleToApplySpray() == true
-        )
+        var item = player.Controller.State.Inventory?.Graffiti;
+        if (item != null && item.Def != null && item.Tint != null)
         {
-            var controllerState = player.Controller.State;
-            if (player.IsUseCmdBusy())
-                controllerState.IsUseCmdBlocked = true;
-            controllerState.DisposeUseCmdTimer();
-            controllerState.UseCmdTimer = Core.Scheduler.DelayBySeconds(
-                0.1f,
-                () =>
-                {
-                    if (controllerState.IsUseCmdBlocked)
-                        controllerState.IsUseCmdBlocked = false;
-                    else if (player.IsValid && !player.IsUseCmdBusy())
-                        player.ExecuteCommand("css_spray");
-                }
-            );
+            sprayDecal.Player = item.Def.Value;
+            sprayDecal.PlayerUpdated();
+            sprayDecal.TintID = item.Tint.Value;
+            sprayDecal.TintIDUpdated();
         }
     }
+
+    // ========================================================================
+    // Runtime: Authentication
+    // ========================================================================
+
+    public async void HandleSignIn(IPlayer player)
+    {
+        var controllerState = player.Controller.State;
+        if (controllerState.IsFetching)
+            return;
+        controllerState.IsFetching = true;
+        var response = await Api.SendSignIn(player.SteamID.ToString());
+        controllerState.IsFetching = false;
+        Core.Scheduler.NextWorldUpdate(() =>
+        {
+            if (response == null)
+            {
+                player?.SendChat(Core.Localizer["invsim.login_failed"]);
+                return;
+            }
+            player?.SendChat(
+                Core.Localizer[
+                    "invsim.login",
+                    $"{Api.GetUrl("/api/sign-in/callback")}?token={response.Token}"
+                ]
+            );
+        });
+    }
+
+    // ========================================================================
+    // Configuration & File Management
+    // ========================================================================
 
     public void HandleFileChanged()
     {
@@ -255,5 +277,14 @@ public partial class InventorySimulator
             );
         else if (OnActivatePlayerHookGuid != null)
             Natives.CServerSideClientBase_ActivatePlayer.RemoveHook(OnActivatePlayerHookGuid.Value);
+    }
+
+    // ========================================================================
+    // Cleanup & Disconnection
+    // ========================================================================
+
+    public static void HandleControllerDeleted(CCSPlayerController controller)
+    {
+        controller.RemoveState();
     }
 }
