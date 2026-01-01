@@ -61,7 +61,7 @@ public partial class InventorySimulator
         {
             var controller = entity.As<CCSPlayerController>();
             if (controller.SteamID != 0)
-                ClearPlayerControllerSteamID(controller);
+                controller.RemoveState();
         }
     }
 }

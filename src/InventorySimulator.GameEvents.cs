@@ -29,8 +29,8 @@ public partial class InventorySimulator
 
     public void OnPlayerConnect(IPlayer player)
     {
+        player.Controller.Revalidate();
         RefreshPlayerInventory(player);
-        UpdatePlayerControllerSteamID(player);
     }
 
     public HookResult OnPlayerDeathPre(EventPlayerDeath @event)
@@ -53,19 +53,6 @@ public partial class InventorySimulator
         var player = @event.UserIdPlayer;
         if (player != null && !player.IsFakeClient && player.IsValid)
             GivePlayerMusicKitStatTrakIncrement(player);
-        return HookResult.Continue;
-    }
-
-    public HookResult OnPlayerDisconnect(EventPlayerDisconnect @event)
-    {
-        var player = @event.UserIdPlayer;
-        if (player != null && !player.IsFakeClient)
-        {
-            var steamId = player.SteamID;
-            ClearPlayerUseCmd(steamId);
-            ClearPlayerPostFetch(steamId);
-            ClearCreatedCEconItem(steamId);
-        }
         return HookResult.Continue;
     }
 }

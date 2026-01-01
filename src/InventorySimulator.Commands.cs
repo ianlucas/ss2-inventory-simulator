@@ -17,17 +17,15 @@ public partial class InventorySimulator
         player?.SendChat(Core.Localizer["invsim.announce", url]);
         if (!ConVars.IsWsEnabled.Value || player == null)
             return;
-        if (PlayerCooldownManager.TryGetValue(player.SteamID, out var timestamp))
+        var controllerState = player.Controller.State;
+        var cooldown = ConVars.WsCooldown.Value;
+        var diff = DateTimeOffset.UtcNow.ToUnixTimeSeconds() - controllerState.WsCooldown;
+        if (diff < cooldown)
         {
-            var cooldown = ConVars.WsCooldown.Value;
-            var diff = DateTimeOffset.UtcNow.ToUnixTimeSeconds() - timestamp;
-            if (diff < cooldown)
-            {
-                player.SendChat(Core.Localizer["invsim.ws_cooldown", cooldown - diff]);
-                return;
-            }
+            player.SendChat(Core.Localizer["invsim.ws_cooldown", cooldown - diff]);
+            return;
         }
-        if (PlayerInFetchManager.ContainsKey(player.SteamID))
+        if (controllerState.IsFetching)
         {
             player.SendChat(Core.Localizer["invsim.ws_in_progress"]);
             return;
@@ -42,15 +40,13 @@ public partial class InventorySimulator
         var player = context.Sender;
         if (player != null && ConVars.IsSprayEnabled.Value)
         {
-            if (PlayerSprayCooldownManager.TryGetValue(player.SteamID, out var timestamp))
+            var controllerState = player.Controller.State;
+            var cooldown = ConVars.SprayCooldown.Value;
+            var diff = DateTimeOffset.UtcNow.ToUnixTimeSeconds() - controllerState.SprayCooldown;
+            if (diff < cooldown)
             {
-                var cooldown = ConVars.SprayCooldown.Value;
-                var diff = DateTimeOffset.UtcNow.ToUnixTimeSeconds() - timestamp;
-                if (diff < cooldown)
-                {
-                    player.SendChat(Core.Localizer["invsim.spray_cooldown", cooldown - diff]);
-                    return;
-                }
+                player.SendChat(Core.Localizer["invsim.spray_cooldown", cooldown - diff]);
+                return;
             }
             SprayPlayerGraffiti(player);
         }
@@ -62,8 +58,9 @@ public partial class InventorySimulator
         var player = context.Sender;
         if (ConVars.IsWsLogin.Value && Api.HasApiKey() && player != null)
         {
+            var controllerState = player.Controller.State;
             player.SendChat(Core.Localizer["invsim.login_in_progress"]);
-            if (PlayerInAuthManager.ContainsKey(player.SteamID))
+            if (controllerState.IsAuthenticating)
                 return;
             SendSignIn(player.SteamID);
         }

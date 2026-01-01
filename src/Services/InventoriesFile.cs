@@ -1,0 +1,62 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Ian Lucas. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
+using Microsoft.Extensions.Logging;
+using SwiftlyS2.Shared;
+
+namespace InventorySimulator;
+
+public static class InventoriesFile
+{
+    [SwiftlyInject]
+    private static ISwiftlyCore Core { get; set; } = null!;
+    private static readonly Dictionary<ulong, PlayerInventory> _loadedInventories = [];
+    private static readonly string _inventoryFileDir = "csgo/addons/swiftlycs2/configs";
+
+    public static bool Load()
+    {
+        try
+        {
+            var path = Path.Combine(Core.GameDirectory, _inventoryFileDir, ConVars.File.Value);
+            if (!File.Exists(path))
+                return false;
+            string json = File.ReadAllText(path);
+            var inventories = JsonSerializer.Deserialize<Dictionary<ulong, PlayerInventory>>(json);
+            _loadedInventories.Clear();
+            if (inventories != null)
+            {
+                foreach (var pair in inventories)
+                    _loadedInventories.TryAdd(pair.Key, pair.Value);
+            }
+            return true;
+        }
+        catch
+        {
+            Core.Logger.LogError("Error when processing \"{File}\".", ConVars.File.Value);
+            return false;
+        }
+    }
+
+    public static bool TryGetBySteamID(
+        ulong steamId,
+        [MaybeNullWhen(false)] out PlayerInventory inventory
+    )
+    {
+        if (_loadedInventories.TryGetValue(steamId, out var value))
+        {
+            inventory = value;
+            return true;
+        }
+        inventory = default;
+        return false;
+    }
+
+    public static PlayerInventory? GetBySteamID(ulong steamId)
+    {
+        return _loadedInventories.TryGetValue(steamId, out var inventory) ? inventory : null;
+    }
+}

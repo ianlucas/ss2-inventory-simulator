@@ -21,6 +21,7 @@ public partial class InventorySimulator(ISwiftlyCore core) : BasePlugin(core)
 {
     public readonly SoundEvent SprayCanShakeSound = new("SprayCan.Shake");
     public readonly SoundEvent SprayCanPaintSound = new("SprayCan.Paint");
+    public Guid? OnActivatePlayerHookGuid;
 
     public override void Load(bool hotReload)
     {
@@ -33,7 +34,6 @@ public partial class InventorySimulator(ISwiftlyCore core) : BasePlugin(core)
         Core.GameEvent.HookPost<EventPlayerConnectFull>(OnPlayerConnectFull);
         Core.GameEvent.HookPre<EventPlayerDeath>(OnPlayerDeathPre);
         Core.GameEvent.HookPre<EventRoundMvp>(OnRoundMvpPre);
-        Core.GameEvent.HookPost<EventPlayerDisconnect>(OnPlayerDisconnect);
         Natives.CCSPlayer_ItemServices_GiveNamedItem.AddHook(OnGiveNamedItem);
         Natives.CCSPlayerInventory_GetItemInLoadout.AddHook(OnGetItemInLoadout);
         OnFileChanged();
@@ -42,6 +42,6 @@ public partial class InventorySimulator(ISwiftlyCore core) : BasePlugin(core)
 
     public override void Unload()
     {
-        FreeCreatedCEconItemView();
+        CCSPlayerControllerState.ClearAllCEconItemView();
     }
 }

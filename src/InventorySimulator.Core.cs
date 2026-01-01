@@ -192,11 +192,11 @@ public partial class InventorySimulator
             || weapon.AttributeManager.Item.ItemID != ulong.Parse(weaponItemId)
         )
             return;
-        var inventory = GetPlayerInventory(player);
+        var inventory = player.Controller.State.Inventory;
         var isFallbackTeam = ConVars.IsFallbackTeam.Value;
         var item = ItemHelper.IsMeleeDesignerName(designerName)
-            ? inventory.GetKnife(player.Controller.TeamNum, isFallbackTeam)
-            : inventory.GetWeapon(
+            ? inventory?.GetKnife(player.Controller.TeamNum, isFallbackTeam)
+            : inventory?.GetWeapon(
                 player.Controller.TeamNum,
                 weapon.AttributeManager.Item.ItemDefinitionIndex,
                 isFallbackTeam
@@ -214,14 +214,11 @@ public partial class InventorySimulator
 
     public void GivePlayerMusicKitStatTrakIncrement(IPlayer player)
     {
-        if (PlayerInventoryManager.TryGetValue(player.SteamID, out var inventory))
+        var item = player.Controller.State.Inventory?.MusicKit;
+        if (item != null && item.Uid != null)
         {
-            var item = inventory.MusicKit;
-            if (item != null && item.Uid != null)
-            {
-                item.Stattrak += 1;
-                SendStatTrakIncrement(player.SteamID, item.Uid.Value);
-            }
+            item.Stattrak += 1;
+            SendStatTrakIncrement(player.SteamID, item.Uid.Value);
         }
     }
 
@@ -234,8 +231,8 @@ public partial class InventorySimulator
 
     public void GiveOnRefreshPlayerInventory(IPlayer player, PlayerInventory oldInventory)
     {
-        var inventory = GetPlayerInventory(player);
-        if (ConVars.IsWsImmediately.Value)
+        var inventory = player.Controller.State.Inventory;
+        if (inventory != null && ConVars.IsWsImmediately.Value)
         {
             RegivePlayerAgent(player, inventory, oldInventory);
             RegivePlayerGloves(player, inventory, oldInventory);
@@ -243,31 +240,9 @@ public partial class InventorySimulator
         }
     }
 
-    public nint GivePlayerEconItem(
-        ulong steamId,
-        int team,
-        int slot,
-        EconItem econItem,
-        nint copyFrom = 0
-    )
-    {
-        var key = $"{steamId}_{team}_{slot}";
-        if (CreatedCEconItemViewManager.TryGetValue(key, out var existingPtr))
-        {
-            var existingItem = Core.Memory.ToSchemaClass<CEconItemView>(existingPtr);
-            existingItem.ApplyAttributes(econItem, (loadout_slot_t)slot, steamId);
-            return existingPtr;
-        }
-        var item = SchemaHelper.CreateCEconItemView(copyFrom);
-        item.ApplyAttributes(econItem, (loadout_slot_t)slot, steamId);
-        CreatedCEconItemViewManager[key] = item.Address;
-        return item.Address;
-    }
-
     public void GivePlayerGraffiti(IPlayer player, CPlayerSprayDecal sprayDecal)
     {
-        var inventory = GetPlayerInventory(player);
-        var item = inventory.Graffiti;
+        var item = player.Controller.State.Inventory?.Graffiti;
         if (item != null && item.Def != null && item.Tint != null)
         {
             sprayDecal.Player = item.Def.Value;
@@ -281,8 +256,7 @@ public partial class InventorySimulator
     {
         if (!player.IsValid)
             return;
-        var inventory = GetPlayerInventory(player);
-        var item = inventory.Graffiti;
+        var item = player.Controller.State.Inventory?.Graffiti;
         if (item == null || item.Def == null || item.Tint == null)
             return;
         var pawn = player.PlayerPawn;
@@ -297,7 +271,7 @@ public partial class InventorySimulator
         SprayCanShakeSound.Recipients.AddRecipient(player.PlayerID);
         SprayCanShakeSound.Emit();
         SprayCanShakeSound.Recipients.RemoveRecipient(player.PlayerID);
-        PlayerSprayCooldownManager[player.SteamID] = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        player.Controller.State.SprayCooldown = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         var sprayDecal = Core.EntitySystem.CreateEntityByDesignerName<CPlayerSprayDecal>(
             "player_spray_decal"
         );
@@ -324,19 +298,16 @@ public partial class InventorySimulator
             && player.PlayerPawn?.IsAbleToApplySpray() == true
         )
         {
+            var controllerState = player.Controller.State;
             if (player.IsUseCmdBusy())
-                PlayerUseCmdBlockManager[player.SteamID] = true;
-            if (PlayerUseCmdManager.TryGetValue(player.SteamID, out var timer))
-            {
-                timer.Cancel();
-                timer.Dispose();
-            }
-            PlayerUseCmdManager[player.SteamID] = Core.Scheduler.DelayBySeconds(
+                controllerState.IsUseCmdBlocked = true;
+            controllerState.DisposeUseCmdTimer();
+            controllerState.UseCmdTimer = Core.Scheduler.DelayBySeconds(
                 0.1f,
                 () =>
                 {
-                    if (PlayerUseCmdBlockManager.ContainsKey(player.SteamID))
-                        PlayerUseCmdBlockManager.Remove(player.SteamID, out var _);
+                    if (controllerState.IsUseCmdBlocked)
+                        controllerState.IsUseCmdBlocked = false;
                     else if (player.IsValid && !player.IsUseCmdBusy())
                         player.ExecuteCommand("css_spray");
                 }
@@ -346,7 +317,10 @@ public partial class InventorySimulator
 
     public void OnFileChanged()
     {
-        LoadPlayerInventories();
+        if (InventoriesFile.Load())
+            foreach (var player in Core.PlayerManager.GetAllPlayers())
+                if (InventoriesFile.TryGetBySteamID(player.SteamID, out var inventory))
+                    player.Controller.State.Inventory = inventory;
     }
 
     public void OnIsRequireInventoryChanged()
