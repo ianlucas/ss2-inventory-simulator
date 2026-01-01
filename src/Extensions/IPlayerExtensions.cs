@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Natives;
 using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.SchemaDefinitions;
@@ -12,9 +11,6 @@ namespace InventorySimulator;
 
 public static class IPlayerExtensions
 {
-    [SwiftlyInject]
-    private static ISwiftlyCore Core { get; set; } = null!;
-
     extension(IPlayer self)
     {
         public bool IsUseCmdBusy()
@@ -67,7 +63,7 @@ public static class IPlayerExtensions
                 pawn.SetModel("characters/models/tm_jumpsuit/tm_jumpsuit_varianta.vmdl");
                 pawn.SetModel(model);
             }
-            Core.Scheduler.NextWorldUpdate(() =>
+            Swiftly.Core.Scheduler.NextWorldUpdate(() =>
             {
                 if (pawn.IsValid && itemServices.IsValid)
                 {
@@ -158,7 +154,7 @@ public static class IPlayerExtensions
                     actualDesignerName
                 );
                 if (weapon != null)
-                    Core.Scheduler.Delay(
+                    Swiftly.Core.Scheduler.Delay(
                         32,
                         () =>
                         {
@@ -168,7 +164,7 @@ public static class IPlayerExtensions
                                 weapon.Clip1Updated();
                                 weapon.ReserveAmmo[0] = reserve;
                                 weapon.ReserveAmmoUpdated();
-                                Core.Scheduler.NextWorldUpdate(() =>
+                                Swiftly.Core.Scheduler.NextWorldUpdate(() =>
                                 {
                                     if (active && self.IsValid)
                                     {

@@ -11,16 +11,13 @@ namespace InventorySimulator;
 
 public static class SchemaHelper
 {
-    [SwiftlyInject]
-    private static ISwiftlyCore Core { get; set; } = null!;
-
     public static CEconItemView CreateCEconItemView(nint copyFrom = 0)
     {
         var ptr = Marshal.AllocHGlobal(Helper.GetSchemaSize<CEconItemView>());
         Natives.CEconItemView_Constructor.Call(ptr);
         if (copyFrom != 0)
             Natives.CEconItemView_OperatorEquals.Call(ptr, copyFrom);
-        return Core.Memory.ToSchemaClass<CEconItemView>(ptr);
+        return Swiftly.Core.Memory.ToSchemaClass<CEconItemView>(ptr);
     }
 
     public static CEconItemSchema? GetItemSchema()

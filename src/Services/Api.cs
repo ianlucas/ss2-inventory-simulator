@@ -7,15 +7,11 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
-using SwiftlyS2.Shared;
 
 namespace InventorySimulator;
 
 public class Api
 {
-    [SwiftlyInject]
-    private static ISwiftlyCore Core { get; set; } = null!;
-
     private static readonly HttpClient _httpClient = new() { Timeout = TimeSpan.FromSeconds(30) };
 
     private const int MaxRetries = 3;
@@ -40,12 +36,15 @@ public class Api
             var response = await _httpClient.PostAsync(url, content);
             if (response.StatusCode == HttpStatusCode.Unauthorized)
             {
-                Core.Logger.LogError("POST {Url} failed, check your invsim_apikey's value.", url);
+                Swiftly.Core.Logger.LogError(
+                    "POST {Url} failed, check your invsim_apikey's value.",
+                    url
+                );
                 return null;
             }
             if (!response.IsSuccessStatusCode)
             {
-                Core.Logger.LogError(
+                Swiftly.Core.Logger.LogError(
                     "POST {Url} failed with status code: {StatusCode}",
                     url,
                     response.StatusCode
@@ -56,7 +55,7 @@ public class Api
         }
         catch (Exception error)
         {
-            Core.Logger.LogError("POST {Url} failed: {Message}", url, error.Message);
+            Swiftly.Core.Logger.LogError("POST {Url} failed: {Message}", url, error.Message);
             return null;
         }
     }
@@ -91,7 +90,7 @@ public class Api
             }
             catch (Exception error)
             {
-                Core.Logger.LogError(
+                Swiftly.Core.Logger.LogError(
                     "GET {Url} failed (attempt {Attempt}/{MaxRetries}): {Message}",
                     url,
                     attempt,

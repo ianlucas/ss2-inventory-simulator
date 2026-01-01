@@ -6,14 +6,11 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
-using SwiftlyS2.Shared;
 
 namespace InventorySimulator;
 
 public static class Inventories
 {
-    [SwiftlyInject]
-    private static ISwiftlyCore Core { get; set; } = null!;
     private static readonly Dictionary<ulong, PlayerInventory> _loadedInventories = [];
     private static readonly string _inventoryFileDir = "csgo/addons/swiftlycs2/configs";
 
@@ -21,7 +18,11 @@ public static class Inventories
     {
         try
         {
-            var path = Path.Combine(Core.GameDirectory, _inventoryFileDir, ConVars.File.Value);
+            var path = Path.Combine(
+                Swiftly.Core.GameDirectory,
+                _inventoryFileDir,
+                ConVars.File.Value
+            );
             if (!File.Exists(path))
                 return false;
             string json = File.ReadAllText(path);
@@ -36,7 +37,7 @@ public static class Inventories
         }
         catch
         {
-            Core.Logger.LogError("Error when processing \"{File}\".", ConVars.File.Value);
+            Swiftly.Core.Logger.LogError("Error when processing \"{File}\".", ConVars.File.Value);
             return false;
         }
     }

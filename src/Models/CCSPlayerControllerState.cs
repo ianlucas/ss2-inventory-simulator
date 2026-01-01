@@ -5,15 +5,12 @@
 
 using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
-using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.SchemaDefinitions;
 
 namespace InventorySimulator;
 
 public class CCSPlayerControllerState(ulong steamId)
 {
-    [SwiftlyInject]
-    private static ISwiftlyCore Core { get; set; } = null!;
     public ulong SteamID = steamId;
     public bool IsFetching = false;
     public bool IsAuthenticating = false;
@@ -51,7 +48,7 @@ public class CCSPlayerControllerState(ulong steamId)
         var key = (SteamID, team, slot);
         if (_econItemViewManager.TryGetValue(key, out var existingPtr))
         {
-            var existingItem = Core.Memory.ToSchemaClass<CEconItemView>(existingPtr);
+            var existingItem = Swiftly.Core.Memory.ToSchemaClass<CEconItemView>(existingPtr);
             existingItem.ApplyAttributes(econItem, (loadout_slot_t)slot, SteamID);
             return existingPtr;
         }
