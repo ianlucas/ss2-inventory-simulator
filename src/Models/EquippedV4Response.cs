@@ -10,26 +10,26 @@ namespace InventorySimulator;
 public class EquippedV4Response
 {
     [JsonPropertyName("agents")]
-    public Dictionary<byte, EconItem> Agents { get; set; } = [];
+    public Dictionary<byte, InventoryItem> Agents { get; set; } = [];
 
     [JsonPropertyName("collectible")]
-    public EconItem? Collectible { get; set; }
+    public InventoryItem? Collectible { get; set; }
 
     [JsonPropertyName("ctWeapons")]
-    public Dictionary<ushort, EconItem> CTWeapons { get; set; } = [];
+    public Dictionary<ushort, InventoryItem> CTWeapons { get; set; } = [];
 
     [JsonPropertyName("gloves")]
-    public Dictionary<byte, EconItem> Gloves { get; set; } = [];
+    public Dictionary<byte, InventoryItem> Gloves { get; set; } = [];
 
     [JsonPropertyName("graffiti")]
-    public EconItem? Graffiti { get; set; }
+    public InventoryItem? Graffiti { get; set; }
 
     [JsonPropertyName("knives")]
-    public Dictionary<byte, EconItem> Knives { get; set; } = [];
+    public Dictionary<byte, InventoryItem> Knives { get; set; } = [];
 
     [JsonPropertyName("musicKit")]
-    public EconItem? MusicKit { get; set; }
+    public InventoryItem? MusicKit { get; set; }
 
     [JsonPropertyName("tWeapons")]
-    public Dictionary<ushort, EconItem> TWeapons { get; set; } = [];
+    public Dictionary<ushort, InventoryItem> TWeapons { get; set; } = [];
 }

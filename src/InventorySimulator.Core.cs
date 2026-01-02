@@ -41,7 +41,7 @@ public partial class InventorySimulator
         {
             var inventory = new PlayerInventory(response);
             if (existing != null)
-                inventory.CachedWeaponEconItems = existing.CachedWeaponEconItems;
+                inventory.WeaponWearCache = existing.WeaponWearCache;
             controllerState.WsUpdatedAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
             controllerState.Inventory = inventory;
         }

@@ -43,19 +43,19 @@ public class CCSPlayerControllerState(ulong steamId)
         UseCmdTimer = null;
     }
 
-    public nint GetEconItemView(int team, int slot, EconItem econItem, nint copyFrom = 0)
+    public nint GetEconItemView(int team, int slot, InventoryItem item, nint copyFrom = 0)
     {
         var key = (SteamID, team, slot);
-        if (_econItemViewManager.TryGetValue(key, out var existingPtr))
+        if (_econItemViewManager.TryGetValue(key, out var ptr))
         {
-            var existingItem = Swiftly.Core.Memory.ToSchemaClass<CEconItemView>(existingPtr);
-            existingItem.ApplyAttributes(econItem, (loadout_slot_t)slot, SteamID);
-            return existingPtr;
+            var existingItemView = Swiftly.Core.Memory.ToSchemaClass<CEconItemView>(ptr);
+            existingItemView.ApplyAttributes(item, (loadout_slot_t)slot, SteamID);
+            return ptr;
         }
-        var item = SchemaHelper.CreateCEconItemView(copyFrom);
-        item.ApplyAttributes(econItem, (loadout_slot_t)slot, SteamID);
-        _econItemViewManager[key] = item.Address;
-        return item.Address;
+        var itemView = SchemaHelper.CreateCEconItemView(copyFrom);
+        itemView.ApplyAttributes(item, (loadout_slot_t)slot, SteamID);
+        _econItemViewManager[key] = itemView.Address;
+        return itemView.Address;
     }
 
     public void ClearEconItemView()

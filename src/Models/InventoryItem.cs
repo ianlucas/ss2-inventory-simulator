@@ -7,7 +7,7 @@ using System.Text.Json.Serialization;
 
 namespace InventorySimulator;
 
-public class EconItem
+public class InventoryItem
 {
     [JsonPropertyName("def")]
     public ushort? Def { get; set; }
@@ -53,12 +53,12 @@ public class EconItem
 
     public override bool Equals(object? obj)
     {
-        if (obj is not EconItem other)
+        if (obj is not InventoryItem other)
             return false;
         return Hash == other.Hash;
     }
 
-    public static bool operator ==(EconItem? left, EconItem? right)
+    public static bool operator ==(InventoryItem? left, InventoryItem? right)
     {
         if (ReferenceEquals(left, right))
             return true;
@@ -67,7 +67,7 @@ public class EconItem
         return left.Equals(right);
     }
 
-    public static bool operator !=(EconItem? left, EconItem? right)
+    public static bool operator !=(InventoryItem? left, InventoryItem? right)
     {
         return !(left == right);
     }

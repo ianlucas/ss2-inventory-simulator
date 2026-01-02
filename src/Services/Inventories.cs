@@ -29,10 +29,8 @@ public static class Inventories
             var inventories = JsonSerializer.Deserialize<Dictionary<ulong, PlayerInventory>>(json);
             _loadedInventories.Clear();
             if (inventories != null)
-            {
                 foreach (var pair in inventories)
                     _loadedInventories.TryAdd(pair.Key, pair.Value);
-            }
             return true;
         }
         catch

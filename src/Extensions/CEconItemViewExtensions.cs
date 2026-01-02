@@ -15,15 +15,15 @@ public static class CEconItemViewExtensions
 
     public static void ApplyAttributes(
         this CEconItemView self,
-        EconItem econItem,
+        InventoryItem item,
         loadout_slot_t? slot,
         ulong? steamId
     )
     {
         var isMelee = slot == loadout_slot_t.LOADOUT_SLOT_MELEE;
         self.Initialized = true;
-        if (econItem.Def != null)
-            self.ItemDefinitionIndex = econItem.Def.Value;
+        if (item.Def != null)
+            self.ItemDefinitionIndex = item.Def.Value;
         var itemId = NextItemId++;
         self.ItemID = itemId;
         self.ItemIDLow = (uint)(itemId & 0xFFFFFFFF);
@@ -33,10 +33,10 @@ public static class CEconItemViewExtensions
         if (isMelee)
             self.EntityQuality = 3;
         else
-            self.EntityQuality = econItem.Stattrak >= 0 ? 9 : 4;
-        if (econItem.Nametag != null)
-            self.CustomName = econItem.Nametag;
-        var customAttrs = econItem.GetAttributes();
+            self.EntityQuality = item.Stattrak >= 0 ? 9 : 4;
+        if (item.Nametag != null)
+            self.CustomName = item.Nametag;
+        var customAttrs = item.GetAttributes();
         var attrs = self.NetworkedDynamicAttributes;
         attrs.Attributes.RemoveAll();
         foreach (var (attributeName, value) in customAttrs)

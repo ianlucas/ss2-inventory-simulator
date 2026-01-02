@@ -59,17 +59,17 @@ public partial class InventorySimulator
                     if (itemDef != null)
                     {
                         var controllerState = controller.GetState();
-                        var econItem = controllerState.Inventory?.GetEconItemForSlot(
+                        var item = controllerState.Inventory?.GetItemForSlot(
                             controller.TeamNum,
                             itemDef.DefaultLoadoutSlot,
                             itemDef.DefIndex,
                             ConVars.IsFallbackTeam.Value
                         );
-                        if (econItem != null)
+                        if (item != null)
                             pScriptItem = controllerState.GetEconItemView(
                                 controller.TeamNum,
                                 (int)itemDef.DefaultLoadoutSlot,
-                                econItem
+                                item
                             );
                     }
                 }
@@ -88,22 +88,22 @@ public partial class InventorySimulator
             var inventory = new CCSPlayerInventory(thisPtr);
             if (!inventory.IsValid)
                 return ret;
-            var item = Core.Memory.ToSchemaClass<CEconItemView>(ret);
-            if (!item.IsValid)
+            var itemView = Core.Memory.ToSchemaClass<CEconItemView>(ret);
+            if (!itemView.IsValid)
                 return ret;
             var player = Core.PlayerManager.GetPlayerFromSteamID(inventory.SOCache.Owner.SteamID);
             if (player == null)
                 return ret;
             var controllerState = player.Controller.GetState();
-            var econItem = controllerState.Inventory?.GetEconItemForSlot(
+            var item = controllerState.Inventory?.GetItemForSlot(
                 (byte)team,
                 (loadout_slot_t)slot,
-                item.ItemDefinitionIndex,
+                itemView.ItemDefinitionIndex,
                 ConVars.IsFallbackTeam.Value,
                 ConVars.MinModels.Value
             );
-            if (econItem != null)
-                return controllerState.GetEconItemView(team, slot, econItem, ret);
+            if (item != null)
+                return controllerState.GetEconItemView(team, slot, item, ret);
             return ret;
         };
     }
