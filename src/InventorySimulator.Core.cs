@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 using SwiftlyS2.Shared.Events;
+using SwiftlyS2.Shared.GameEventDefinitions;
 using SwiftlyS2.Shared.Natives;
 using SwiftlyS2.Shared.Players;
 using SwiftlyS2.Shared.SchemaDefinitions;
@@ -134,12 +135,13 @@ public partial class InventorySimulator
         HandleStatTrakIncrement(player.SteamID, item.Uid.Value);
     }
 
-    public static void HandlePlayerMusicKitStatTrakIncrement(IPlayer player)
+    public static void HandlePlayerMusicKitStatTrakIncrement(EventRoundMvp @event, IPlayer player)
     {
         var item = player.Controller.GetState().Inventory?.MusicKit;
-        if (item != null && item.Uid != null)
+        if (item != null && item.Uid != null && item.Stattrak != null && item.Stattrak >= 0)
         {
             item.Stattrak += 1;
+            @event.MusickItMvps = item.Stattrak.Value;
             HandleStatTrakIncrement(player.SteamID, item.Uid.Value);
         }
     }

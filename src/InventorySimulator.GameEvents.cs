@@ -45,7 +45,7 @@ public partial class InventorySimulator
     {
         var player = @event.UserIdPlayer;
         if (player != null && !player.IsFakeClient && player.IsValid)
-            HandlePlayerMusicKitStatTrakIncrement(player);
+            HandlePlayerMusicKitStatTrakIncrement(@event, player);
         return HookResult.Continue;
     }
 }
