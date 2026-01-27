@@ -1,0 +1,78 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release (e.g. 1.0.0)"
+        required: false
+        type: string
+      draft:
+        description: "Create as draft release"
+        required: false
+        type: boolean
+        default: false
+      prerelease:
+        description: "Create as pre-release"
+        required: false
+        type: boolean
+        default: false
+
+env:
+  project_name: InventorySimulator
+
+jobs:
+  build:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Update module version
+        if: inputs.version != ''
+        run: |
+          sed -i 's/Version = "1.0.0"/Version = "${{ inputs.version }}"/g' src/${{ env.project_name }}.cs
+
+      - name: Set up .NET 10
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "10.x"
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Publish the project
+        run: dotnet publish
+
+      - name: Move release zip
+        if: inputs.version != ''
+        run: |
+          mv build/${{ env.project_name }}.zip ${{ env.project_name }}-v${{ inputs.version }}.zip
+
+      - name: Generate changelog
+        if: inputs.version != ''
+        run: |
+          PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [ -z "$PREV_TAG" ]; then
+            git log --pretty=format:"* %s (%h)" --reverse > changelog.txt
+          else
+            git log ${PREV_TAG}..HEAD --pretty=format:"* %s (%h)" --reverse > changelog.txt
+          fi
+
+      - name: Create release
+        if: inputs.version != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create ${{ inputs.version }} \
+            --title "v${{ inputs.version }}" \
+            --notes-file changelog.txt \
+            ${{ inputs.draft && '--draft' || '' }} \
+            ${{ inputs.prerelease && '--prerelease' || '' }} \
+            ${{ env.project_name }}-v${{ inputs.version }}.zip

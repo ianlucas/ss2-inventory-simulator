@@ -8,7 +8,7 @@
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <AssemblyName>InventorySimulator</AssemblyName>
     <OutputPath>$(MSBuildThisFileDirectory)build/</OutputPath>
-    <PublishDir>$(OutputPath)publish/InventorySimulator</PublishDir>
+    <PublishDir>$(OutputPath)publish/addons/swiftlys2/plugins/InventorySimulator</PublishDir>
   </PropertyGroup>
 
   <ItemGroup>
@@ -36,7 +36,7 @@
     </ItemGroup>
 
     <ZipDirectory
-      SourceDirectory="$(PublishDir)../"
+      SourceDirectory="$(PublishDir)../../../../"
       DestinationFile="$(OutputPath)../$(AssemblyName).zip"
       Overwrite="true"
     />
